@@ -1,153 +1,138 @@
-// Copyright (c) JupyterLite Contributors
-// Distributed under the terms of the Modified BSD License.
+import { KernelMessage } from '@jupyterlab/services';
+import { IKernel } from '@jupyterlite/services';
 
-import type { KernelMessage } from '@jupyterlab/services';
-
-import { BaseKernel } from '@jupyterlite/services';
+import type { ISignal } from '@lumino/signaling';
+import { Signal } from '@lumino/signaling';
+import { PromiseDelegate } from '@lumino/coreutils';
 
 /**
- * A kernel that echos content back.
+ * A kernel to relay messages to the python async kernel.
  */
-export class EchoKernel extends BaseKernel {
+export class AsyncKernelInterface implements IKernel {
   /**
-   * Handle a kernel_info_request message
-   */
-  async kernelInfoRequest(): Promise<KernelMessage.IInfoReplyMsg['content']> {
-    const content: KernelMessage.IInfoReply = {
-      implementation: 'Text',
-      implementation_version: '0.1.0',
-      language_info: {
-        codemirror_mode: {
-          name: 'text/plain'
-        },
-        file_extension: '.txt',
-        mimetype: 'text/plain',
-        name: 'echo',
-        nbconvert_exporter: 'text',
-        pygments_lexer: 'text',
-        version: 'es2017'
-      },
-      protocol_version: '5.3',
-      status: 'ok',
-      banner: 'An echo kernel running in the browser',
-      help_links: [
-        {
-          text: 'Echo Kernel',
-          url: 'https://github.com/jupyterlite/echo-kernel'
-        }
-      ]
-    };
-    return content;
-  }
-
-  /**
-   * Handle an `execute_request` message
+   * Construct a new BaseKernel.
    *
-   * @param msg The parent message.
+   * @param options The instantiation options for a BaseKernel.
    */
-  async executeRequest(
-    content: KernelMessage.IExecuteRequestMsg['content']
-  ): Promise<KernelMessage.IExecuteReplyMsg['content']> {
-    const { code } = content;
-
-    this.publishExecuteResult({
-      execution_count: this.executionCount,
-      data: {
-        'text/plain': code
-      },
-      metadata: {}
+  constructor(options: IKernel.IOptions) {
+    const { id, name, location, sendMessage } = options;
+    this._id = id;
+    this._name = name;
+    this._location = location;
+    this._sendMessage = sendMessage;
+    this._pyodideWorker = new Worker(
+      new URL('./webworker.js', import.meta.url),
+      { type: 'module' }
+    );
+    this._pyodideWorker.onmessage = e => {
+      if (e.data.ready) this._ready.resolve();
+      else {
+        const msg = JSON.parse(e.data);
+        this._sendMessage(msg);
+      }
+    };
+    this._pyodideWorker.postMessage({
+      mode: 'initialize',
+      options: { id, name, location }
     });
-
-    return {
-      status: 'ok',
-      execution_count: this.executionCount,
-      user_expressions: {}
-    };
   }
 
   /**
-   * Handle an complete_request message
-   *
-   * @param msg The parent message.
+   * A promise that is fulfilled when the kernel is ready.
    */
-  async completeRequest(
-    content: KernelMessage.ICompleteRequestMsg['content']
-  ): Promise<KernelMessage.ICompleteReplyMsg['content']> {
-    throw new Error('Not implemented');
+  get ready(): Promise<void> {
+    return this._ready.promise;
   }
 
   /**
-   * Handle an `inspect_request` message.
-   *
-   * @param content - The content of the request.
-   *
-   * @returns A promise that resolves with the response message.
+   * Return whether the kernel is disposed.
    */
-  async inspectRequest(
-    content: KernelMessage.IInspectRequestMsg['content']
-  ): Promise<KernelMessage.IInspectReplyMsg['content']> {
-    throw new Error('Not implemented');
+  get isDisposed(): boolean {
+    return this._isDisposed;
   }
 
   /**
-   * Handle an `is_complete_request` message.
-   *
-   * @param content - The content of the request.
-   *
-   * @returns A promise that resolves with the response message.
+   * A signal emitted when the kernel is disposed.
    */
-  async isCompleteRequest(
-    content: KernelMessage.IIsCompleteRequestMsg['content']
-  ): Promise<KernelMessage.IIsCompleteReplyMsg['content']> {
-    throw new Error('Not implemented');
+  get disposed(): ISignal<this, void> {
+    return this._disposed;
   }
 
   /**
-   * Handle a `comm_info_request` message.
-   *
-   * @param content - The content of the request.
-   *
-   * @returns A promise that resolves with the response message.
+   * Get the kernel id
    */
-  async commInfoRequest(
-    content: KernelMessage.ICommInfoRequestMsg['content']
-  ): Promise<KernelMessage.ICommInfoReplyMsg['content']> {
-    throw new Error('Not implemented');
+  get id(): string {
+    return this._id;
   }
 
   /**
-   * Send an `input_reply` message.
-   *
-   * @param content - The content of the reply.
+   * Get the name of the kernel
    */
-  inputReply(content: KernelMessage.IInputReplyMsg['content']): void {
-    throw new Error('Not implemented');
+  get name(): string {
+    return this._name;
   }
 
   /**
-   * Send an `comm_open` message.
-   *
-   * @param msg - The comm_open message.
+   * The location in the virtual filesystem from which the kernel was started.
    */
-  async commOpen(msg: KernelMessage.ICommOpenMsg): Promise<void> {
-    throw new Error('Not implemented');
+  get location(): string {
+    return this._location;
   }
 
   /**
-   * Send an `comm_msg` message.
-   *
-   * @param msg - The comm_msg message.
+   * The current execution count
    */
-  async commMsg(msg: KernelMessage.ICommMsgMsg): Promise<void> {
-    throw new Error('Not implemented');
+  get executionCount(): number {
+    return this._executionCount;
   }
 
   /**
-   * Send an `comm_close` message.
-   *
-   * @param close - The comm_close message.
+   * Get the last parent header
    */
-  async commClose(msg: KernelMessage.ICommCloseMsg): Promise<void> {
-    throw new Error('Not implemented');
+  get parentHeader():
+    | KernelMessage.IHeader<KernelMessage.MessageType>
+    | undefined {
+    return this._parentHeader;
   }
+
+  /**
+   * Get the last parent message (mimic ipykernel's get_parent)
+   */
+  get parent(): KernelMessage.IMessage | undefined {
+    return this._parent;
+  }
+
+  /**
+   * Dispose the kernel.
+   */
+  dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
+    this._isDisposed = true;
+    this._disposed.emit(void 0);
+  }
+
+  /**
+   * Handle an incoming message from the client.
+   *
+   * @param msg The message to handle
+   */
+  async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
+    this._pyodideWorker.postMessage({ mode: 'msg', msg });
+  }
+
+  private _id: string;
+  private _name: string;
+  private _location: string;
+  private _pyodideWorker: Worker;
+  private _executionCount = 0;
+  private _isDisposed = false;
+  private _ready = new PromiseDelegate<void>();
+  private _disposed = new Signal<this, void>(this);
+  private _sendMessage: IKernel.SendMessage;
+  private _parentHeader:
+    | KernelMessage.IHeader<KernelMessage.MessageType>
+    | undefined = undefined;
+  private _parent: KernelMessage.IMessage | undefined = undefined;
 }
