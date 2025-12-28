@@ -20,7 +20,7 @@ import { IKernelSpecs } from '@jupyterlite/services';
 import { AsyncKernelInterface } from './kernel';
 
 /**
- * A plugin to register the echo kernel.
+ * A plugin to register the async kernel.
  */
 const kernel: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlite/async-kernel:kernel',

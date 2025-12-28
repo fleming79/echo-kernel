@@ -1213,9 +1213,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlite/echo-kernel@workspace:.":
+"@jupyterlite/async-kernel@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@jupyterlite/echo-kernel@workspace:."
+  resolution: "@jupyterlite/async-kernel@workspace:."
   dependencies:
     "@jupyterlab/application": ^4.5.0
     "@jupyterlab/builder": ^4.5.0
@@ -4708,9 +4708,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rechoir@npm:^0.8.0":
+"rasyncir@npm:^0.8.0":
   version: 0.8.0
-  resolution: "rechoir@npm:0.8.0"
+  resolution: "rasyncir@npm:0.8.0"
   dependencies:
     resolve: ^1.20.0
   checksum: ad3caed8afdefbc33fbc30e6d22b86c35b3d51c2005546f4e79bcc03c074df804b3640ad18945e6bef9ed12caedc035655ec1082f64a5e94c849ff939dc0a788
@@ -5627,7 +5627,7 @@ __metadata:
     fastest-levenshtein: ^1.0.12
     import-local: ^3.0.2
     interpret: ^3.1.1
-    rechoir: ^0.8.0
+    rasyncir: ^0.8.0
     webpack-merge: ^5.7.3
   peerDependencies:
     webpack: 5.x.x

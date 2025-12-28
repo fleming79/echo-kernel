@@ -803,7 +803,7 @@ all = [
 ]
 
 [[package]]
-name = "jupyterlite-echo-kernel"
+name = "jupyterlite-async-kernel"
 source = { editable = "." }
 
 [package.dev-dependencies]

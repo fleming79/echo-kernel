@@ -13,7 +13,7 @@
       "webRoot": "${workspaceFolder}",
       "pathMappings": [
         {
-          "url": "webpack://jupyterlite/echo-kernel/src",
+          "url": "webpack://jupyterlite/async-kernel/src",
           "path": "${workspaceFolder}/src"
         }
       ],

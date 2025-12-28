@@ -45,4 +45,4 @@ jobs:
 
       - name: "** Next Step **"
         run: |
-          echo "Optional): Review Draft Release: ${{ steps.prep-release.outputs.release_url }}"
+          async "Optional): Review Draft Release: ${{ steps.prep-release.outputs.release_url }}"

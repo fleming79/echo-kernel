@@ -50,11 +50,11 @@ jobs:
       - name: "** Next Step **"
         if: ${{ success() }}
         run: |
-          echo "Verify the final release"
-          echo ${{ steps.finalize-release.outputs.release_url }}
+          async "Verify the final release"
+          async ${{ steps.finalize-release.outputs.release_url }}
 
       - name: "** Failure Message **"
         if: ${{ failure() }}
         run: |
-          echo "Failed to Publish the Draft Release Url:"
-          echo ${{ steps.populate-release.outputs.release_url }}
+          async "Failed to Publish the Draft Release Url:"
+          async ${{ steps.populate-release.outputs.release_url }}
