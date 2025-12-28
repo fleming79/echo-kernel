@@ -26,7 +26,8 @@
         "url": "https://github.com/jupyterlite/echo-kernel.git"
     },
     "scripts": {
-        "build": "jlpm build:lib && jlpm build:labextension:dev",
+        "build": "jlpm build:lib && jlpm build:worker && jlpm build:labextension:dev",
+        "build:worker": "esbuild --bundle --sourcemap --target=es2019 --format=esm --outfile=lib/webworker.js src/webworker.ts",
         "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
         "build:labextension": "jupyter labextension build .",
         "build:labextension:dev": "jupyter labextension build --development True .",
@@ -53,7 +54,12 @@
     },
     "dependencies": {
         "@jupyterlab/application": "^4.5.0",
-        "@jupyterlite/services": "^0.7.0"
+        "@jupyterlab/coreutils": "^6.5.1",
+        "@jupyterlab/logconsole": "^4.5.1",
+        "@jupyterlite/apputils": "^0.7.1",
+        "@jupyterlite/services": "^0.7.0",
+        "@lumino/coreutils": "^2.2.2",
+        "webpack": "^5.104.1"
     },
     "devDependencies": {
         "@jupyterlab/builder": "^4.5.0",
@@ -63,6 +69,7 @@
         "@typescript-eslint/eslint-plugin": "^6.1.0",
         "@typescript-eslint/parser": "^6.1.0",
         "css-loader": "^6.7.1",
+        "esbuild": "^0.27.2",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",

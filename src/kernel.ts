@@ -5,6 +5,9 @@ import type { ISignal } from '@lumino/signaling';
 import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
 
+// @ts-ignore # we need to ensure this module can be imported
+import { DriveFS } from '@jupyterlite/services/lib/contents/drivefs';
+
 /**
  * A kernel to relay messages to the python async kernel.
  */
@@ -14,8 +17,9 @@ export class AsyncKernelInterface implements IKernel {
    *
    * @param options The instantiation options for a BaseKernel.
    */
-  constructor(options: IKernel.IOptions) {
-    const { id, name, location, sendMessage } = options;
+  constructor(options: IKernel.IOptions | any) {
+    const { id, name, location, sendMessage, baseUrl, browsingContextId } =
+      options;
     this._id = id;
     this._name = name;
     this._location = location;
@@ -27,14 +31,29 @@ export class AsyncKernelInterface implements IKernel {
     this._pyodideWorker.onmessage = e => {
       if (e.data.ready) this._ready.resolve();
       else {
-        const msg = JSON.parse(e.data);
-        this._sendMessage(msg);
+        if (e.data.msg_string) {
+          const msg = JSON.parse(e.data.msg_string);
+          msg.buffers = e.data.buffers;
+          this._sendMessage(msg);
+        } else {
+          // todo: log errors
+        }
       }
     };
     this._pyodideWorker.postMessage({
       mode: 'initialize',
-      options: { id, name, location }
+      options: { id, name, location, baseUrl, browsingContextId }
     });
+  }
+
+  /**
+   * Handle an incoming message from the client.
+   *
+   * @param msg The message to handle
+   */
+  async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
+    await this.ready;
+    this._pyodideWorker.postMessage({ mode: 'msg', msg: JSON.stringify(msg) });
   }
 
   /**
@@ -109,17 +128,9 @@ export class AsyncKernelInterface implements IKernel {
     if (this.isDisposed) {
       return;
     }
+    this._pyodideWorker.terminate();
     this._isDisposed = true;
     this._disposed.emit(void 0);
-  }
-
-  /**
-   * Handle an incoming message from the client.
-   *
-   * @param msg The message to handle
-   */
-  async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
-    this._pyodideWorker.postMessage({ mode: 'msg', msg });
   }
 
   private _id: string;

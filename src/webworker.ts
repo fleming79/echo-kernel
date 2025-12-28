@@ -1,29 +1,59 @@
+import { DriveFS } from '@jupyterlite/services/lib/contents/drivefs';
 import type Pyodide from 'pyodide';
 
-async function load_pyoidide() {
-  // Dynamically import Pyodide from the CDN
+let driveFS: DriveFS;
+let pyodide: Pyodide.PyodideAPI;
+let kernel: any;
+let handleMessage: any;
 
-  const { loadPyodide }: typeof Pyodide = await import(
-    /* webpackIgnore: true */ 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.mjs' as any
-  );
-  const pyodide = await loadPyodide();
-  return pyodide;
+async function initialize(options: any) {
+  const PYODIDE_CDN_URL =
+    'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js';
+  // @ts-ignore
+  importScripts(PYODIDE_CDN_URL);
+  pyodide = await await (self as any).loadPyodide();
+  await initFilesystem(options);
+  await initKernel(options);
+  self.postMessage({ ready: true });
 }
 
-let _initializer: any;
-const ready = new Promise((resolve, reject) => {
-      _initializer = { resolve, reject };
-    });
-const pyodideReadyPromise = load_pyoidide();
+/**
+ * Setup custom Emscripten FileSystem
+ */
+async function initFilesystem(options: any): Promise<void> {
+  const mountpoint = '/drive';
+  const { FS, PATH, ERRNO_CODES } = pyodide;
+  const { baseUrl, browsingContextId } = options;
 
-async function initialize(pyodide: Pyodide.PyodideAPI, options: any) {
-  // const driveFS: DriveFS = await initFilesystem(pyodide, options);
-  await initKernel(pyodide, options);
-  _initializer?.resolve(null);
+  let driveName = '';
+  let localPath = options.location;
+  if (options.location.includes(':')) {
+    const parts = options.location.split(':');
+    driveName = parts[0];
+    localPath = parts[1];
+  }
+
+  driveFS = new DriveFS({
+    FS: FS as any,
+    PATH,
+    ERRNO_CODES,
+    baseUrl,
+    driveName: driveName,
+    mountpoint,
+    browsingContextId
+  });
+  FS.mkdirTree(mountpoint);
+  FS.mount(driveFS as any, {}, mountpoint);
+  FS.chdir(mountpoint);
+  if (localPath)
+    await pyodide.runPythonAsync(`import os\nos.chdir("${localPath}")`);
 }
 
+function sender(msg_string: string) {
+  self.postMessage({ msg_string });
+}
 
-async function initKernel(pyodide: Pyodide.PyodideAPI, options: any) {
+async function initKernel(options: any) {
   await pyodide.loadPackage('micropip');
   const micropip = pyodide.pyimport('micropip');
   await micropip.install('ssl');
@@ -47,30 +77,22 @@ async function initKernel(pyodide: Pyodide.PyodideAPI, options: any) {
   await micropip.install(deps, reinstall=True)
   `
   );
-  await pyodide.runPythonAsync(`
-    import async_kernel
-    async_kernel.Kernel().interface.start()
-    _on_msg = async_kernel.Kernel().interface.on_msg
-    `);
+  kernel = pyodide.pyimport('async_kernel').Kernel();
+  handleMessage = await kernel.interface.start(
+    pyodide.toPy(sender),
+    pyodide.toPy(options)
+  );
 }
 
 self.onmessage = async event => {
-  // make sure loading is done
-  const pyodide = await pyodideReadyPromise;
-
   switch (event.data.mode) {
     case 'initialize': {
-      initialize(pyodide, event.data.options);
+      initialize(event.data.options);
+      break;
     }
     case 'msg': {
-      await ready;
       try {
-        const buffers = pyodide.toPy(event.data.msg.buffers);
-        delete event.data.msg.buffers;
-        const msg_string = JSON.stringify(event.data.msg);
-        pyodide.runPythonAsync('_on_msg(msg_string, buffers)', {
-          locals: pyodide.toPy({ msg_string, buffers }) as any
-        });
+        handleMessage(event.data.msg);
       } catch (error) {
         self.postMessage({ error: error });
       }

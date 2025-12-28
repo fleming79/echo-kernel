@@ -5,6 +5,13 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { PageConfig } from '@jupyterlab/coreutils';
+
+import type { ILogPayload } from '@jupyterlab/logconsole';
+
+import { ILoggerRegistry } from '@jupyterlab/logconsole';
+
+import { IServiceWorkerManager } from '@jupyterlite/apputils';
 
 import type { IKernel } from '@jupyterlite/services';
 
@@ -18,8 +25,41 @@ import { AsyncKernelInterface } from './kernel';
 const kernel: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlite/async-kernel:kernel',
   autoStart: true,
-  requires: [IKernelSpecs],
-  activate: (app: JupyterFrontEnd, kernelspecs: IKernelSpecs) => {
+  requires: [IKernelSpecs, IServiceWorkerManager, ILoggerRegistry],
+  activate: (
+    app: JupyterFrontEnd,
+    kernelspecs: IKernelSpecs,
+    serviceWorkerManager: IServiceWorkerManager,
+    loggerRegistry: ILoggerRegistry
+  ) => {
+    const { contents: contentsManager, sessions } = app.serviceManager;
+    const baseUrl = PageConfig.getBaseUrl();
+    // The logger will find the notebook associated with the kernel id
+    // and log the payload to the log console for that notebook.
+    const logger = async (options: {
+      payload: ILogPayload;
+      kernelId: string;
+    }) => {
+      if (!loggerRegistry) {
+        // nothing to do in this case
+        return;
+      }
+
+      const { payload, kernelId } = options;
+
+      // Find the session path that corresponds to the kernel ID
+      let sessionPath = '';
+      for (const session of sessions.running()) {
+        if (session.kernel?.id === kernelId) {
+          sessionPath = session.path;
+          break;
+        }
+      }
+
+      const logger = loggerRegistry.getLogger(sessionPath);
+      logger.log(payload);
+    };
+
     kernelspecs.register({
       spec: {
         name: 'async-kernel',
@@ -32,7 +72,13 @@ const kernel: JupyterFrontEndPlugin<void> = {
         }
       },
       create: async (options: IKernel.IOptions): Promise<IKernel> => {
-        return new AsyncKernelInterface(options);
+        return new AsyncKernelInterface({
+          ...options,
+          baseUrl,
+          contentsManager,
+          browsingContextId: serviceWorkerManager?.browsingContextId,
+          logger
+        });
       }
     });
   }
