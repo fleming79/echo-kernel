@@ -1,59 +1,52 @@
-import { KernelMessage } from '@jupyterlab/services';
+import type { KernelMessage } from '@jupyterlab/services';
 import { IKernel } from '@jupyterlite/services';
 
 import type { ISignal } from '@lumino/signaling';
+import type { ILogPayload } from '@jupyterlab/logconsole';
+import type { AsyncKernel } from './webworker';
+
 import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
 
-// @ts-ignore # we need to ensure this module can be imported
-import { DriveFS } from '@jupyterlite/services/lib/contents/drivefs';
-
 /**
- * A kernel to relay messages to the python async kernel.
+ * A kernel interface to relay messages between the client and kernel running in a webworker.
  */
-export class AsyncKernelInterface implements IKernel {
+export class KernelRelay implements IKernel {
   /**
-   * Construct a new BaseKernel.
+   * Construct a new KernelRelay.
    *
-   * @param options The instantiation options for a BaseKernel.
+   * @param options The instantiation options for an KernelRelay.
    */
-  constructor(options: IKernel.IOptions | any) {
-    const { id, name, location, sendMessage, baseUrl, browsingContextId } =
-      options;
-    this._id = id;
-    this._name = name;
-    this._location = location;
+  constructor(
+    options: IKernel.IOptions & AsyncKernel.IOptions,
+    logger: (options: { payload: ILogPayload; kernelId: string }) => void
+  ) {
+    const { id, name, sendMessage, location } = options;
+    this.id = id;
+    this.name = name;
+    this.location = location;
     this._sendMessage = sendMessage;
-    this._pyodideWorker = new Worker(
-      new URL('./webworker.js', import.meta.url),
-      { type: 'module' }
-    );
-    this._pyodideWorker.onmessage = e => {
-      if (e.data.ready) this._ready.resolve();
-      else {
-        if (e.data.msg_string) {
-          const msg = JSON.parse(e.data.msg_string);
-          msg.buffers = e.data.buffers;
-          this._sendMessage(msg);
-        } else {
-          // todo: log errors
-        }
-      }
-    };
-    this._pyodideWorker.postMessage({
-      mode: 'initialize',
-      options: { id, name, location, baseUrl, browsingContextId }
-    });
-  }
+    this._logger = logger;
 
-  /**
-   * Handle an incoming message from the client.
-   *
-   * @param msg The message to handle
-   */
-  async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
-    await this.ready;
-    this._pyodideWorker.postMessage({ mode: 'msg', msg: JSON.stringify(msg) });
+    // The webworker is built using eslint to ensure the imports can be imported at runtime.
+    // see: jlpm build:worker (called by jlpm build).
+    this._pyodideWorker = new Worker(new URL('./webworker.js', import.meta.url), {
+      type: 'module'
+    });
+    this._pyodideWorker.onmessage = this.handlePyodideWorkerMessage.bind(this);
+    const kernelOptions: AsyncKernel.IOptions = {
+      id,
+      name,
+      location: location,
+      baseUrl: options.baseUrl,
+      browsingContextId: options.browsingContextId,
+      pyodideUrl: options.pyodideUrl,
+      loadPyodideOptions: options.loadPyodideOptions,
+      kernelOptions: options.kernelOptions,
+      kernelLoadScript: options.kernelLoadScript,
+      kernelPostStartScript: options.kernelPostStartScript
+    };
+    this._pyodideWorker.postMessage({ mode: 'initialize', options: kernelOptions });
   }
 
   /**
@@ -78,47 +71,45 @@ export class AsyncKernelInterface implements IKernel {
   }
 
   /**
-   * Get the kernel id
+   * Handle an incoming message from the client.
+   *
+   * @param msg The message event
    */
-  get id(): string {
-    return this._id;
+  async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
+    await this.ready;
+    this._pyodideWorker.postMessage({ mode: 'msg', msg });
   }
 
   /**
-   * Get the name of the kernel
+   * Handle an incoming message from the pyodide web worker.
+   *
+   * @param e The message event
    */
-  get name(): string {
-    return this._name;
-  }
-
-  /**
-   * The location in the virtual filesystem from which the kernel was started.
-   */
-  get location(): string {
-    return this._location;
-  }
-
-  /**
-   * The current execution count
-   */
-  get executionCount(): number {
-    return this._executionCount;
-  }
-
-  /**
-   * Get the last parent header
-   */
-  get parentHeader():
-    | KernelMessage.IHeader<KernelMessage.MessageType>
-    | undefined {
-    return this._parentHeader;
-  }
-
-  /**
-   * Get the last parent message (mimic ipykernel's get_parent)
-   */
-  get parent(): KernelMessage.IMessage | undefined {
-    return this._parent;
+  async handlePyodideWorkerMessage(e: MessageEvent) {
+    switch (e.data.mode) {
+      case 'msg': {
+        const msg = JSON.parse(e.data.msg_string);
+        msg.buffers = e.data.buffers;
+        this._sendMessage(msg);
+        break;
+      }
+      case 'log': {
+        this._logger({ payload: e.data.log, kernelId: this.id });
+        break;
+      }
+      case 'ready': {
+        this._ready.resolve();
+        break;
+      }
+      case 'stopped':
+        {
+          this._pyodideWorker?.terminate();
+          //@ts-expect-error
+          delete this._pyodideWorker;
+          this.dispose();
+        }
+        break;
+    }
   }
 
   /**
@@ -128,22 +119,26 @@ export class AsyncKernelInterface implements IKernel {
     if (this.isDisposed) {
       return;
     }
-    this._pyodideWorker.terminate();
+    this._ready.reject(`${this.id} was disposed`);
+    try {
+      // Give the kernel a chance to shutdown gracefully.
+      this._pyodideWorker.postMessage({ mode: 'stop' });
+      return;
+    } catch {
+      // nothing to see here
+    }
     this._isDisposed = true;
     this._disposed.emit(void 0);
   }
 
-  private _id: string;
-  private _name: string;
-  private _location: string;
+  readonly id: string;
+  readonly name: string;
+  readonly location: string;
+
   private _pyodideWorker: Worker;
-  private _executionCount = 0;
+  private _logger: (options: { payload: ILogPayload; kernelId: string }) => void;
   private _isDisposed = false;
   private _ready = new PromiseDelegate<void>();
   private _disposed = new Signal<this, void>(this);
   private _sendMessage: IKernel.SendMessage;
-  private _parentHeader:
-    | KernelMessage.IHeader<KernelMessage.MessageType>
-    | undefined = undefined;
-  private _parent: KernelMessage.IMessage | undefined = undefined;
 }

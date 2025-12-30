@@ -1,10 +1,7 @@
 // Copyright (c) JupyterLite Contributors
 // Distributed under the terms of the Modified BSD License.
 
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { PageConfig } from '@jupyterlab/coreutils';
 
 import type { ILogPayload } from '@jupyterlab/logconsole';
@@ -17,13 +14,23 @@ import type { IKernel } from '@jupyterlite/services';
 
 import { IKernelSpecs } from '@jupyterlite/services';
 
-import { AsyncKernelInterface } from './kernel';
+import { KernelRelay } from './kernel';
+
+/**
+ * The default CDN fallback for Pyodide
+ */
+const PYODIDE_CDN_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js';
+
+/**
+ * The id for the extension, and key in the litePlugins.
+ */
+const PLUGIN_ID = '@jupyterlite/async-kernel:kernel';
 
 /**
  * A plugin to register the async kernel.
  */
 const kernel: JupyterFrontEndPlugin<void> = {
-  id: '@jupyterlite/async-kernel:kernel',
+  id: PLUGIN_ID,
   autoStart: true,
   requires: [IKernelSpecs, IServiceWorkerManager, ILoggerRegistry],
   activate: (
@@ -32,14 +39,18 @@ const kernel: JupyterFrontEndPlugin<void> = {
     serviceWorkerManager: IServiceWorkerManager,
     loggerRegistry: ILoggerRegistry
   ) => {
-    const { contents: contentsManager, sessions } = app.serviceManager;
+    const { sessions } = app.serviceManager;
+
+    const config =
+      JSON.parse(PageConfig.getOption('litePluginSettings') || '{}')[PLUGIN_ID] || {};
+
     const baseUrl = PageConfig.getBaseUrl();
+
+    const pyodideUrl = config.pyodideUrl || PYODIDE_CDN_URL;
+
     // The logger will find the notebook associated with the kernel id
     // and log the payload to the log console for that notebook.
-    const logger = async (options: {
-      payload: ILogPayload;
-      kernelId: string;
-    }) => {
+    const logger = async (options: { payload: ILogPayload; kernelId: string }) => {
       if (!loggerRegistry) {
         // nothing to do in this case
         return;
@@ -62,23 +73,26 @@ const kernel: JupyterFrontEndPlugin<void> = {
 
     kernelspecs.register({
       spec: {
-        name: 'async-kernel',
-        display_name: 'Python (async)',
-        language: 'python',
+        name: config.name || 'async',
+        display_name: config.display_name || 'Python (async)',
+        language: config.language || 'python',
         argv: [],
         resources: {
-          'logo-32x32': '',
-          'logo-64x64': ''
+          'logo-32x32': config.logo || '',
+          'logo-64x64': config.logo || ''
         }
       },
       create: async (options: IKernel.IOptions): Promise<IKernel> => {
-        return new AsyncKernelInterface({
-          ...options,
-          baseUrl,
-          contentsManager,
-          browsingContextId: serviceWorkerManager?.browsingContextId,
+        return new KernelRelay(
+          {
+            ...options,
+            ...config,
+            baseUrl,
+            pyodideUrl,
+            browsingContextId: serviceWorkerManager.browsingContextId
+          },
           logger
-        });
+        );
       }
     });
   }
