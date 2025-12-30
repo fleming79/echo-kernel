@@ -32,7 +32,8 @@ The kernel can be configured by adding a section to the `'jupyter-lite.json'`
 configuration file.
 
 - **`pyodideUrl`**: The url to the CDN for Pyodide.
-- **`loadPyodideOptions`**: Options passed when calling [loadPyodide](https://pyodide.org/en/stable/usage/api/js-api.html#exports.loadPyodide).
+- **`loadPyodideOptions`**: Options passed when calling
+  [loadPyodide](https://pyodide.org/en/stable/usage/api/js-api.html#exports.loadPyodide).
   [options](https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig).
 - **`name`** (default='async'): The name to use to register the kernel.
 - **`language`** (default='python'): The language the kernel supports.
@@ -103,6 +104,7 @@ jlpm build
 # Run JupyterLab in another terminal
 jupyter lite serve
 ```
+
 A VSCode debug config is provided to enable debugging of JavaScript.
 
 ### Packaging the extension

@@ -88,9 +88,7 @@ export class KernelRelay implements IKernel {
   async handlePyodideWorkerMessage(e: MessageEvent) {
     switch (e.data.mode) {
       case 'msg': {
-        const msg = JSON.parse(e.data.msg_string);
-        msg.buffers = e.data.buffers;
-        this._sendMessage(msg);
+        this._sendMessage(e.data.msg);
         break;
       }
       case 'log': {

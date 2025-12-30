@@ -32,31 +32,29 @@ async function log(log: ILogPayload) {
 }
 
 /**
- * A sender for sending messages to the frontend.
+ * This function is passed to the python kernel to send messages the client.
  *
- * Normally, messages are forwarded by the relay, when requiresReply=true
- * such as for stdin, a blocking call is made
+ * Python packs the mssage as json, which is unpacked here. Where buffers are provided, they are converted to js.
  *
- * The blocking mode us
+ * There are two modes:
+ * 1. The message is posted via the KernelRelay
+ * 2. The message is sent via undocumented api feature in Jupyterlite. This mode is only used for blocking stdin requests.
  *
- * @param msg_string JSON string
- * @param requiresReply Blocks until a reply is received.
+ * @param msgjson JSON string
+ * @param requiresReply Blocks until a reply is received and return the reply (stdin only).
  */
-function sender(msg_string: string, requiresReply = false) {
+function sender(msgjson: string, buffers: any, requiresReply = false) {
+  const msg = JSON.parse(msgjson);
   if (requiresReply) {
-    // ref: https://github.com/jupyterlite/pyodide-kernel/pull/183
+    // ref: https://github.com/jupyterlite/pyodide-kernel/pull/183 & https://github.com/jupyterlite/jupyterlite/pull/1640/changes
 
     const { baseUrl, browsingContextId } = options;
-
     const xhr = new XMLHttpRequest();
-    const url = URLExt.join(baseUrl, '/api/stdin/kernel');
+    const url = URLExt.join(baseUrl, `/api/stdin/kernel`); // stdin only
     xhr.open('POST', url, false); // Synchronous XMLHttpRequest
-    const msg = JSON.stringify({
-      browsingContextId,
-      data: JSON.parse(msg_string)
-    });
+    const request = JSON.stringify({ browsingContextId, data: msg });
     // Send input request, this blocks until the input reply is received.
-    xhr.send(msg);
+    xhr.send(request);
     const inputReply = JSON.parse(xhr.response as string);
 
     if ('error' in inputReply) {
@@ -65,8 +63,16 @@ function sender(msg_string: string, requiresReply = false) {
     }
     return inputReply.content?.value;
   }
-
-  self.postMessage({ mode: 'msg', msg_string });
+  if (buffers) {
+    const buffers_ = [];
+    for (let buffer of buffers) {
+      buffers_.push(buffer.toJs());
+      buffer.destroy();
+    }
+    msg.buffers = buffers_;
+    buffers.destroy();
+  }
+  self.postMessage({ mode: 'msg', msg });
 }
 
 /**
