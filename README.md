@@ -41,10 +41,10 @@ configuration file.
   values to override nested values/traits.
 - **`icon`** The icon file to use TODO: Add more detail.
 - **`kernelLoadScript`** A script to create an instance of a kernel. Use this for
-  advanced customisation of the kernel. By default, all wheels in the folder where the
-  kernel is started will be installed when the kernel starts. The example below includes
+  advanced customisation of the kernel. By default, all wheels in the folder an subfolders where the
+  kernel is started will be installed prior to loading  the kernel starts. The example below includes
   the default code. The last line must be an expression that returns the kernel
-  instance.
+  instance. 
 - **`kernelPostStartScript`** A script to call after the kernel has started. This is
   asynchronous but the kernel will not be made available until it returns.
 
@@ -67,7 +67,7 @@ Filename: `'jupyter-lite.json'`
         "name": "async",
         "display_name": "Python (async)",
         "kernelOptions": { "shell.timeout": "1" },
-        "kernelLoadScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\n\nimport async_kernel\n\nasync_kernel.Kernel(options)",
+        "kernelLoadScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('**/*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\n\nimport async_kernel\n\nasync_kernel.Kernel(options)",
         "kernelPostStartScript": ""
       }
     }

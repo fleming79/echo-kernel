@@ -3,7 +3,7 @@ import { IKernel } from '@jupyterlite/services';
 
 import type { ISignal } from '@lumino/signaling';
 import type { ILogPayload } from '@jupyterlab/logconsole';
-import type { AsyncKernel } from './webworker';
+import type { CallableKernelInterface } from './token';
 
 import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
@@ -18,7 +18,7 @@ export class KernelRelay implements IKernel {
    * @param options The instantiation options for an KernelRelay.
    */
   constructor(
-    options: IKernel.IOptions & AsyncKernel.IOptions,
+    options: IKernel.IOptions & CallableKernelInterface.IOptions,
     logger: (options: { payload: ILogPayload; kernelId: string }) => void
   ) {
     const { id, name, sendMessage, location } = options;
@@ -34,7 +34,7 @@ export class KernelRelay implements IKernel {
       type: 'module'
     });
     this._pyodideWorker.onmessage = this.handlePyodideWorkerMessage.bind(this);
-    const kernelOptions: AsyncKernel.IOptions = {
+    const kernelOptions: CallableKernelInterface.IOptions = {
       id,
       name,
       location: location,

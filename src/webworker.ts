@@ -1,53 +1,53 @@
 import type { ILogPayload } from '@jupyterlab/logconsole';
 import type Pyodide from 'pyodide';
+import type { CallableKernelInterface } from './token';
 
 import { URLExt } from '@jupyterlab/coreutils/lib/url';
 import { DriveFS } from '@jupyterlite/services/lib/contents/drivefs';
 
 let driveFS: DriveFS;
 let pyodide: Pyodide.PyodideAPI;
-let kernel: any;
-let handleMessage: any;
-let options: AsyncKernel.IOptions;
+let kernel_interface: any;
+let callbacks: any;
+let options: CallableKernelInterface.IOptions;
 
 /**
  * Initialize the kernel.
  * @param initOptions Options relating to the kernel.
  */
-async function initialize(initOptions: AsyncKernel.IOptions) {
+async function initialize(initOptions: CallableKernelInterface.IOptions) {
   options = initOptions;
   await initRuntime();
   await initFilesystem();
-  await startKernel();
+  await startKernelInterface();
   self.postMessage({ mode: 'ready' });
 }
 
 /**
  * Send payload to the kernel relay for logging.
  *
- * @param log The payload to log.
+ * @param log The payload to log
  */
 async function log(log: ILogPayload) {
   self.postMessage({ mode: 'log', log });
 }
 
+// -----  Interface functions -------
+
 /**
- * This function is passed to the python kernel to send messages the client.
- *
- * Python packs the mssage as json, which is unpacked here. Where buffers are provided, they are converted to js.
- *
- * There are two modes:
- * 1. The message is posted via the KernelRelay
- * 2. The message is sent via undocumented api feature in Jupyterlite. This mode is only used for blocking stdin requests.
+ * message and posts the message to the KernelRelay.
  *
  * @param msgjson JSON string
- * @param requiresReply Blocks until a reply is received and return the reply (stdin only).
+ * @param buffers An array of buffers
+ * @param blocking Uses standard in to send a message to the
  */
-function sender(msgjson: string, buffers: any, requiresReply = false) {
+function send(msgjson: string, buffers: any, blocking = false) {
   const msg = JSON.parse(msgjson);
-  if (requiresReply) {
+  if (blocking) {
     // ref: https://github.com/jupyterlite/pyodide-kernel/pull/183 & https://github.com/jupyterlite/jupyterlite/pull/1640/changes
-
+    if (msg.channel != 'stdin') {
+      throw new Error('Blocking requests are only accepted for stdin');
+    }
     const { baseUrl, browsingContextId } = options;
     const xhr = new XMLHttpRequest();
     const url = URLExt.join(baseUrl, `/api/stdin/kernel`); // stdin only
@@ -55,13 +55,7 @@ function sender(msgjson: string, buffers: any, requiresReply = false) {
     const request = JSON.stringify({ browsingContextId, data: msg });
     // Send input request, this blocks until the input reply is received.
     xhr.send(request);
-    const inputReply = JSON.parse(xhr.response as string);
-
-    if ('error' in inputReply) {
-      // Service worker may return an error instead of an input reply message.
-      throw new Error(inputReply['error']);
-    }
-    return inputReply.content?.value;
+    return xhr.response as string;
   }
   if (buffers) {
     const buffers_ = [];
@@ -73,6 +67,18 @@ function sender(msgjson: string, buffers: any, requiresReply = false) {
     buffers.destroy();
   }
   self.postMessage({ mode: 'msg', msg });
+}
+
+/**
+ * A callback for when the kernel has stopped.
+ */
+function stopped() {
+  try {
+    pyodide.pyimport('sys').exit(0);
+  } catch {
+    // sys.exit raises an error.
+  }
+  self.postMessage({ mode: 'stopped' });
 }
 
 /**
@@ -158,10 +164,10 @@ async function initFilesystem(): Promise<void> {
 }
 
 /**
- * Start the kernel calling custom hooks at various stages.
+ * Start the kernel interface calling custom hooks at various stages.
  *
  */
-async function startKernel() {
+async function startKernelInterface() {
   await pyodide.loadPackage('micropip');
   const micropip = pyodide.pyimport('micropip');
   await micropip.install('ssl');
@@ -172,33 +178,24 @@ async function startKernel() {
   import micropip
   import pathlib
 
-  deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("*.whl")]
+  deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("**/*.whl")]
   deps.append("async-kernel")
   await micropip.install(deps, keep_going=True, reinstall=True)
   
-  import async_kernel
+  from async_kernel.interface.callable import CallableKernelInterface
 
-  async_kernel.Kernel(options)
+  CallableKernelInterface(options)
   `;
 
-  // Load the kernel
-  kernel = await pyodide.runPythonAsync(loadScript, {
+  // Load the interface
+  kernel_interface = await pyodide.runPythonAsync(loadScript, {
     locals: pyodide.toPy({ options: options.kernelOptions || {} })
   });
 
   // Start the kernel
-  handleMessage = await kernel.interface.start(pyodide.toPy(sender));
-
-  const waitStopped = async () => {
-    await kernel.event_stopped;
-    try {
-      pyodide.pyimport('sys').exit(0);
-    } catch {
-      // sys.exit raises an error.
-    }
-    self.postMessage({ mode: 'stopped' });
-  };
-  waitStopped();
+  callbacks = await kernel_interface.start(
+    pyodide.toPy({ send, stopped }, { depth: 2 })
+  );
 
   if (options.kernelPostStartScript) {
     await pyodide.runPythonAsync(options.kernelPostStartScript);
@@ -215,7 +212,7 @@ self.onmessage = async (event: MessageEvent) => {
       try {
         const buffers = packBuffers(event.data.msg.buffers);
         delete event.data.msg.buffers;
-        handleMessage(JSON.stringify(event.data.msg), buffers);
+        callbacks.handle_msg(JSON.stringify(event.data.msg), buffers);
         if (buffers) {
           for (let buffer of buffers) {
             buffer?.destroy();
@@ -235,81 +232,15 @@ self.onmessage = async (event: MessageEvent) => {
       break;
     }
     case 'stop': {
-      kernel.stop();
+      callbacks.stop();
       break;
     }
   }
 };
 
+
 function packBuffers(buffers?: (ArrayBuffer | ArrayBufferView)[]) {
   if (buffers && buffers.length > 0) {
     return pyodide.toPy(buffers, { depth: 2 });
-  }
-}
-
-/**
- * A namespace for Kernel statics.
- */
-export namespace AsyncKernel {
-  /**
-   * The instantiation options for an Async kernel.
-   */
-  export interface IOptions {
-    /**
-     * The kernel id.
-     */
-    id: string;
-
-    /**
-     * The kernel name.
-     */
-    name: string;
-
-    /**
-     * The location where the kernel started.
-     */
-    location: string;
-
-    /**
-     * The base URL.
-     */
-    baseUrl: string;
-
-    /**
-     * The URL to fetch Pyodide.
-     * Plugin configurable.
-     */
-    pyodideUrl: string;
-
-    /**
-     * additional options to provide to `loadPyodide`
-     * Plugin configurable.
-     * @see https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig
-     */
-    loadPyodideOptions: Record<string, any> & {
-      lockFileURL: string;
-      packages: string[];
-    };
-
-    /**
-     * The ID of the browsing context where the request originated.
-     */
-    browsingContextId: string;
-
-    /**
-     * Options passed to the python kernel during instantiation.
-     * Plugin configurable.
-     */
-    kernelOptions: any;
-
-    /**
-     * A script to run to load the kernel.
-     */
-    kernelLoadScript?: string;
-
-    /**
-     * A script to run after the kernel has started.
-     */
-    kernelPostStartScript?: string;
   }
 }
