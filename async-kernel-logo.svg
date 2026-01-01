@@ -1,0 +1,62 @@
+<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Jupyter orbit ring -->
+  <ellipse cx="110" cy="110" rx="92" ry="62"
+           fill="none" stroke="#f37726" stroke-width="6"/>
+
+  <!-- Orbiting dots -->
+  <circle cx="38" cy="110" r="7" fill="#f37726"/>
+  <circle cx="110" cy="63" r="7" fill="#f37726"/>
+
+  <!-- Async arrows -->
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <polygon points="0 0, 8 4, 0 8" fill="#f37726"/>
+    </marker>
+  </defs>
+
+  <path d="M85 110 a25 25 0 1 1 50 0"
+        fill="none" stroke="#f37726" stroke-width="4"
+        marker-end="url(#arrowhead)"/>
+
+  <path d="M135 110 a25 25 0 1 1 -50 0"
+        fill="none" stroke="#f37726" stroke-width="4"
+        marker-end="url(#arrowhead)"/>
+
+  <!-- Python-like upper shape -->
+  <path d="M75 85
+           q0 -25 35 -25
+           h30
+           q25 0 25 25
+           v20
+           q0 25 -25 25
+           h-20
+           q-20 0 -20 -20
+           v-10
+           q0 -15 -25 -15z"
+        fill="#3776AB" stroke="#1f3f63" stroke-width="3"/>
+
+  <!-- Upper eye -->
+  <circle cx="115" cy="80" r="6" fill="#ffffff"/>
+
+  <!-- Python-like lower shape -->
+  <path d="M145 135
+           q0 25 -35 25
+           h-30
+           q-25 0 -25 -25
+           v-20
+           q0 -25 25 -25
+           h20
+           q20 0 20 20
+           v10
+           q0 15 25 15z"
+        fill="#FFD43B" stroke="#b89a00" stroke-width="3"/>
+
+  <!-- Orbiting dots lower -->
+  <circle cx="182" cy="110" r="7" fill="#f37726"/>
+  <circle cx="110" cy="157" r="7" fill="#f37726"/>
+
+  <!-- Lower eye -->
+  <circle cx="105" cy="140" r="6" fill="#0b1020"/>
+
+</svg>

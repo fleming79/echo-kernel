@@ -7,7 +7,7 @@ import { DriveFS } from '@jupyterlite/services/lib/contents/drivefs';
 
 let driveFS: DriveFS;
 let pyodide: Pyodide.PyodideAPI;
-let kernelInterface: CallableKernelInterface.KernelInterface;
+let kernelInterface: CallableKernelInterface.IKernelInterface;
 let options: CallableKernelInterface.IOptions;
 
 /**
@@ -46,12 +46,12 @@ function send(msgjson: string, buffers: any, blocking = false) {
   if (blocking) {
     // ref: https://github.com/jupyterlite/pyodide-kernel/pull/183 & https://github.com/jupyterlite/jupyterlite/pull/1640/changes
     // This only works in jupyterlite.
-    if (msg.channel != 'stdin') {
+    if (msg.channel !== 'stdin') {
       throw new Error('Blocking requests are only accepted for stdin');
     }
     const { baseUrl, browsingContextId } = options;
     const xhr = new XMLHttpRequest();
-    const url = URLExt.join(baseUrl, `/api/stdin/kernel`); // stdin only
+    const url = URLExt.join(baseUrl, '/api/stdin/kernel'); // stdin only
     xhr.open('POST', url, false); // Synchronous XMLHttpRequest
     const request = JSON.stringify({ browsingContextId, data: msg });
     // Send input request, this blocks until the input reply is received.
@@ -60,7 +60,7 @@ function send(msgjson: string, buffers: any, blocking = false) {
   }
   if (buffers) {
     const buffers_ = [];
-    for (let buffer of buffers) {
+    for (const buffer of buffers) {
       buffers_.push(buffer.toJs());
       buffer.destroy();
     }
@@ -98,7 +98,7 @@ async function initRuntime(): Promise<void> {
     );
     loadPyodide = pyodideModule.loadPyodide;
   } else {
-    // @ts-ignore
+    // @ts-expect-error `pyodideUrl` is a variable.
     importScripts(pyodideUrl);
     loadPyodide = (self as any).loadPyodide;
   }
@@ -158,7 +158,9 @@ async function initFilesystem(): Promise<void> {
   FS.mkdirTree(mountpoint);
   FS.mount(driveFS as any, {}, mountpoint);
   FS.chdir(mountpoint);
-  if (localPath) await pyodide.runPythonAsync(`import os\nos.chdir("${localPath}")`);
+  if (localPath) {
+    await pyodide.runPythonAsync(`import os\nos.chdir("${localPath}")`);
+  }
 }
 
 /**
@@ -207,7 +209,7 @@ self.onmessage = async (event: MessageEvent) => {
         delete event.data.msg.buffers;
         kernelInterface.handle_msg(JSON.stringify(event.data.msg), buffers);
         if (buffers) {
-          for (let buffer of buffers) {
+          for (const buffer of buffers) {
             buffer?.destroy();
           }
         }
@@ -227,7 +229,6 @@ self.onmessage = async (event: MessageEvent) => {
     }
   }
 };
-
 
 function packBuffers(buffers?: (ArrayBuffer | ArrayBufferView)[]) {
   if (buffers && buffers.length > 0) {

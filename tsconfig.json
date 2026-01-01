@@ -23,6 +23,5 @@
     "target": "es6"
   },
   "include": ["src/*"],
-  "files": ["src/defaults.json"],
-  
+  "files": ["src/defaults.json"]
 }

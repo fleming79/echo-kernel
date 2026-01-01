@@ -1,4 +1,3 @@
-
 /**
  * A namespace for CallableKernelInterface statics.
  */
@@ -71,7 +70,7 @@ export namespace CallableKernelInterface {
   /**
    * The interface to the kernel returned by calling the method returned from .
    */
-  export interface KernelInterface {
+  export interface IKernelInterface {
     /**
      * The kernel interface callback to handle messages.
      *

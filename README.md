@@ -4,8 +4,6 @@
 
 An asynchronous python kernel for JupyterLite.
 
-![async-kernel](https://user-images.githubusercontent.com/591645/135660177-13f909fb-b63b-4bc9-9bf3-e2b6c37ee015.gif)
-
 ## Requirements
 
 - JupyterLite >= 0.7.0
@@ -41,10 +39,10 @@ configuration file.
   values to override nested values/traits.
 - **`icon`** The icon file to use TODO: Add more detail.
 - **`startInterfaceScript`** A script to create an instance of a kernel. Use this for
-  advanced customisation of the kernel. By default, all wheels in the folder an subfolders where the
-  kernel is started will be installed prior to loading  the kernel starts. The example below includes
-  the default code. The last line must be an expression that returns the kernel
-  instance. 
+  advanced customisation of the kernel. By default, all wheels in the folder an
+  subfolders where the kernel is started will be installed prior to loading the kernel
+  starts. The example below includes the default code. The last line must be an
+  expression that returns the kernel instance.
 - **`kernelPostStartScript`** A script to call after the kernel has started. This is
   asynchronous but the kernel will not be made available until it returns.
 

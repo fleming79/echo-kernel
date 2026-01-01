@@ -90,7 +90,7 @@ export class KernelRelay implements IKernel {
       case 'stopped':
         {
           this._pyodideWorker?.terminate();
-          //@ts-expect-error
+          //@ts-expect-error We are shutting down and want this to be removed.
           delete this._pyodideWorker;
           this.dispose();
         }
