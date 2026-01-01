@@ -1,27 +1,27 @@
+import type { ILogPayload } from '@jupyterlab/logconsole';
 import type { KernelMessage } from '@jupyterlab/services';
 import { IKernel } from '@jupyterlite/services';
-
-import type { ISignal } from '@lumino/signaling';
-import type { ILogPayload } from '@jupyterlab/logconsole';
-import type { CallableKernelInterface } from './token';
-
-import { Signal } from '@lumino/signaling';
 import { PromiseDelegate } from '@lumino/coreutils';
+import type { ISignal } from '@lumino/signaling';
+import { Signal } from '@lumino/signaling';
+import type { CallableKernelInterface } from './tokens';
 
 /**
  * A kernel interface to relay messages between the client and kernel running in a webworker.
  */
 export class KernelRelay implements IKernel {
   /**
-   * Construct a new KernelRelay.
    *
-   * @param options The instantiation options for an KernelRelay.
+   * @param options All options
+   * @param sendMessage A callback to send the message
+   * @param logger A callable for logging to the user interface
    */
   constructor(
-    options: IKernel.IOptions & CallableKernelInterface.IOptions,
+    options: CallableKernelInterface.IOptions,
+    sendMessage: IKernel.SendMessage,
     logger: (options: { payload: ILogPayload; kernelId: string }) => void
   ) {
-    const { id, name, sendMessage, location } = options;
+    const { id, name, location } = options;
     this.id = id;
     this.name = name;
     this.location = location;
@@ -34,19 +34,7 @@ export class KernelRelay implements IKernel {
       type: 'module'
     });
     this._pyodideWorker.onmessage = this.handlePyodideWorkerMessage.bind(this);
-    const kernelOptions: CallableKernelInterface.IOptions = {
-      id,
-      name,
-      location: location,
-      baseUrl: options.baseUrl,
-      browsingContextId: options.browsingContextId,
-      pyodideUrl: options.pyodideUrl,
-      loadPyodideOptions: options.loadPyodideOptions,
-      kernelOptions: options.kernelOptions,
-      kernelLoadScript: options.kernelLoadScript,
-      kernelPostStartScript: options.kernelPostStartScript
-    };
-    this._pyodideWorker.postMessage({ mode: 'initialize', options: kernelOptions });
+    this._pyodideWorker.postMessage({ mode: 'initialize', options });
   }
 
   /**

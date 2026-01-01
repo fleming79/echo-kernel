@@ -1,14 +1,13 @@
 import type { ILogPayload } from '@jupyterlab/logconsole';
 import type Pyodide from 'pyodide';
-import type { CallableKernelInterface } from './token';
+import type { CallableKernelInterface } from './tokens';
 
 import { URLExt } from '@jupyterlab/coreutils/lib/url';
 import { DriveFS } from '@jupyterlite/services/lib/contents/drivefs';
 
 let driveFS: DriveFS;
 let pyodide: Pyodide.PyodideAPI;
-let kernel_interface: any;
-let callbacks: any;
+let kernelInterface: CallableKernelInterface.KernelInterface;
 let options: CallableKernelInterface.IOptions;
 
 /**
@@ -32,19 +31,21 @@ async function log(log: ILogPayload) {
   self.postMessage({ mode: 'log', log });
 }
 
-// -----  Interface functions -------
+// -----  Kernel Interface Callbacks -------
 
 /**
- * message and posts the message to the KernelRelay.
+ * Send messages for the kernel.
  *
- * @param msgjson JSON string
+ * @param msgjson A json string
  * @param buffers An array of buffers
- * @param blocking Uses standard in to send a message to the
+ * @param blocking When true will make a blocking stdin request and return the reply message
+ * @returns
  */
 function send(msgjson: string, buffers: any, blocking = false) {
   const msg = JSON.parse(msgjson);
   if (blocking) {
     // ref: https://github.com/jupyterlite/pyodide-kernel/pull/183 & https://github.com/jupyterlite/jupyterlite/pull/1640/changes
+    // This only works in jupyterlite.
     if (msg.channel != 'stdin') {
       throw new Error('Blocking requests are only accepted for stdin');
     }
@@ -81,6 +82,8 @@ function stopped() {
   self.postMessage({ mode: 'stopped' });
 }
 
+// ----- End Kernel Interface Callbacks -------
+
 /**
  * Load pyodide.
  *
@@ -90,7 +93,6 @@ async function initRuntime(): Promise<void> {
   let loadPyodide: typeof Pyodide.loadPyodide;
 
   if (pyodideUrl.endsWith('.mjs')) {
-    // note: this does not work at all in firefox
     const pyodideModule: typeof Pyodide = await import(
       /* webpackIgnore: true */ pyodideUrl
     );
@@ -109,7 +111,7 @@ async function initRuntime(): Promise<void> {
       console.error(text);
       log({ type: 'text', level: 'critical', data: text });
     },
-    ...options.loadPyodideOptions // ref: https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig
+    ...options.loadPyodideOptions
   });
   // @ts-expect-error: pyodide._api is private
   pyodide._api.on_fatal = async (e: any) => {
@@ -123,11 +125,7 @@ ${e.message}
 Stack trace:
 ${e.stack}`;
     }
-    log({
-      type: 'text',
-      level: 'critical',
-      data: error
-    });
+    log({ type: 'text', level: 'critical', data: error });
   };
 }
 
@@ -164,7 +162,7 @@ async function initFilesystem(): Promise<void> {
 }
 
 /**
- * Start the kernel interface calling custom hooks at various stages.
+ * Start the kernel interface.
  *
  */
 async function startKernelInterface() {
@@ -172,8 +170,8 @@ async function startKernelInterface() {
   const micropip = pyodide.pyimport('micropip');
   await micropip.install('ssl');
 
-  const loadScript =
-    options.kernelLoadScript ||
+  const startInterfaceScript =
+    options.startInterfaceScript ||
     `
   import micropip
   import pathlib
@@ -184,18 +182,13 @@ async function startKernelInterface() {
   
   from async_kernel.interface.callable import CallableKernelInterface
 
-  CallableKernelInterface(options)
+  CallableKernelInterface(settings).start(send=send, stopped=stopped)
   `;
-
-  // Load the interface
-  kernel_interface = await pyodide.runPythonAsync(loadScript, {
-    locals: pyodide.toPy({ options: options.kernelOptions || {} })
+  const settings = options.kernelSettings || {};
+  const namespace = pyodide.toPy({ settings, send, stopped });
+  kernelInterface = await pyodide.runPythonAsync(startInterfaceScript, {
+    globals: namespace
   });
-
-  // Start the kernel
-  callbacks = await kernel_interface.start(
-    pyodide.toPy({ send, stopped }, { depth: 2 })
-  );
 
   if (options.kernelPostStartScript) {
     await pyodide.runPythonAsync(options.kernelPostStartScript);
@@ -212,18 +205,15 @@ self.onmessage = async (event: MessageEvent) => {
       try {
         const buffers = packBuffers(event.data.msg.buffers);
         delete event.data.msg.buffers;
-        callbacks.handle_msg(JSON.stringify(event.data.msg), buffers);
+        kernelInterface.handle_msg(JSON.stringify(event.data.msg), buffers);
         if (buffers) {
           for (let buffer of buffers) {
             buffer?.destroy();
           }
         }
       } catch (e) {
-        log({
-          type: 'text',
-          level: 'error',
-          data: `error: ${e} msg: ${event.data.msg}`
-        });
+        const data = `error: ${e} msg: ${event.data.msg}`;
+        log({ type: 'text', level: 'error', data });
       }
       break;
     }
@@ -232,7 +222,7 @@ self.onmessage = async (event: MessageEvent) => {
       break;
     }
     case 'stop': {
-      callbacks.stop();
+      kernelInterface.stop();
       break;
     }
   }

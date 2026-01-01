@@ -3,23 +3,12 @@
 
 import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { PageConfig } from '@jupyterlab/coreutils';
-
 import type { ILogPayload } from '@jupyterlab/logconsole';
-
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-
 import { IServiceWorkerManager } from '@jupyterlite/apputils';
-
 import type { IKernel } from '@jupyterlite/services';
-
 import { IKernelSpecs } from '@jupyterlite/services';
-
 import { KernelRelay } from './kernel';
-
-/**
- * The default CDN fallback for Pyodide
- */
-const PYODIDE_CDN_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js';
 
 /**
  * The id for the extension, and key in the litePlugins.
@@ -41,12 +30,11 @@ const kernel: JupyterFrontEndPlugin<void> = {
   ) => {
     const { sessions } = app.serviceManager;
 
-    const config =
-      JSON.parse(PageConfig.getOption('litePluginSettings') || '{}')[PLUGIN_ID] || {};
-
-    const baseUrl = PageConfig.getBaseUrl();
-
-    const pyodideUrl = config.pyodideUrl || PYODIDE_CDN_URL;
+    const config = {
+      ...require('./defaults.json'),
+      ...(JSON.parse(PageConfig.getOption('litePluginSettings') || '{}')[PLUGIN_ID] ||
+        {})
+    };
 
     // The logger will find the notebook associated with the kernel id
     // and log the payload to the log console for that notebook.
@@ -73,24 +61,27 @@ const kernel: JupyterFrontEndPlugin<void> = {
 
     kernelspecs.register({
       spec: {
-        name: config.name || 'async',
-        display_name: config.display_name || 'Python (async)',
-        language: config.language || 'python',
+        name: config.name,
+        display_name: config.display_name,
+        language: config.language,
         argv: [],
         resources: {
-          'logo-32x32': config.logo || '',
-          'logo-64x64': config.logo || ''
+          'logo-32x32': config.logo,
+          'logo-64x64': config.logo
         }
       },
       create: async (options: IKernel.IOptions): Promise<IKernel> => {
         return new KernelRelay(
           {
-            ...options,
             ...config,
-            baseUrl,
-            pyodideUrl,
+            id: options.id,
+            name: options.name,
+            location: options.location,
+            baseUrl: PageConfig.getBaseUrl(),
+            pyodideUrl: config.pyodideUrl,
             browsingContextId: serviceWorkerManager.browsingContextId
           },
+          options.sendMessage,
           logger
         );
       }

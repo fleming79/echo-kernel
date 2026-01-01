@@ -49,20 +49,40 @@ export namespace CallableKernelInterface {
     browsingContextId: string;
 
     /**
-     * Options passed to the python kernel during instantiation.
+     * Settings to load into the python kernel during instantiation.
      * Plugin configurable.
      */
-    kernelOptions: any;
+    kernelSettings: any;
 
     /**
-     * A script to run to load the kernel.
+     * A script to run to load the kernel interface.
+     *
+     * options are provided in the namespace while the scrupt must return a function
+     * that when called will start the kernel and return the interface below.
      */
-    kernelLoadScript?: string;
+    startInterfaceScript: string;
 
     /**
      * A script to run after the kernel has started.
      */
-    kernelPostStartScript?: string;
+    kernelPostStartScript: string;
+  }
 
+  /**
+   * The interface to the kernel returned by calling the method returned from .
+   */
+  export interface KernelInterface {
+    /**
+     * The kernel interface callback to handle messages.
+     *
+     * @param msg_json The message encoded as a json string
+     * @param buffers Buffers corresponding to the message
+     */
+    handle_msg: (msg_json: string, buffers: Array<Buffer> | undefined) => void;
+
+    /**
+     * The kernel interface to stop the kernel.
+     */
+    stop: () => void;
   }
 }

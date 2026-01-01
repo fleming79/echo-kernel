@@ -1,6 +1,6 @@
 {
     "name": "@jupyterlite/async-kernel",
-    "version": "0.4.0",
+    "version": "0.1.0",
     "description": "Async kernel for JupyterLite",
     "keywords": [
         "jupyter",
@@ -16,7 +16,7 @@
     "files": [
         "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
         "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
-        "src/**/*.{ts,tsx}"
+        "src/**/*.{json,ts,tsx}"
     ],
     "main": "lib/index.js",
     "types": "lib/index.d.ts",

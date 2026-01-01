@@ -37,10 +37,10 @@ configuration file.
   [options](https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig).
 - **`name`** (default='async'): The name to use to register the kernel.
 - **`language`** (default='python'): The language the kernel supports.
-- **`kernelOptions`**: Options passed to the kernel prior to starting it. Use dotted
+- **`kernelSettings`**: Options passed to the kernel prior to starting it. Use dotted
   values to override nested values/traits.
 - **`icon`** The icon file to use TODO: Add more detail.
-- **`kernelLoadScript`** A script to create an instance of a kernel. Use this for
+- **`startInterfaceScript`** A script to create an instance of a kernel. Use this for
   advanced customisation of the kernel. By default, all wheels in the folder an subfolders where the
   kernel is started will be installed prior to loading  the kernel starts. The example below includes
   the default code. The last line must be an expression that returns the kernel
@@ -66,8 +66,8 @@ Filename: `'jupyter-lite.json'`
         },
         "name": "async",
         "display_name": "Python (async)",
-        "kernelOptions": { "shell.timeout": "1" },
-        "kernelLoadScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('**/*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\n\nimport async_kernel\n\nasync_kernel.Kernel(options)",
+        "kernelSettings": { "shell.timeout": "1" },
+        "startInterfaceScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('**/*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\nfrom async_kernel.interface.callable import CallableKernelInterface\n\nCallableKernelInterface(settings).start(send=send, stopped=stopped)",
         "kernelPostStartScript": ""
       }
     }
