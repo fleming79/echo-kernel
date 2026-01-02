@@ -182,9 +182,9 @@ async function startKernelInterface() {
   deps.append("async-kernel")
   await micropip.install(deps, keep_going=True, reinstall=True)
   
-  from async_kernel.interface.callable import CallableKernelInterface
+  import async_kernel.interface
 
-  CallableKernelInterface(settings).start(send=send, stopped=stopped)
+  async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)
   `;
   const settings = options.kernelSettings || {};
   const namespace = pyodide.toPy({ settings, send, stopped });

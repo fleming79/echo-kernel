@@ -26,7 +26,11 @@ dependencies = [
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
 [dependency-groups]
-dev = ["jupyterlite-core[all]", "nodejs-wheel-binaries"]
+dev = [
+    "jupyter-releaser>=1.10.1",
+    "jupyterlite-core[all]",
+    "nodejs-wheel-binaries",
+]
 
 
 [tool.hatch.version]

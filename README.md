@@ -1,7 +1,5 @@
 # jupyterlite-async-kernel
 
-[![Github Actions Status](https://github.com/jupyterlite/async-kernel/workflows/Build/badge.svg)](https://github.com/jupyterlite/async-kernel/actions/workflows/build.yml)
-
 An asynchronous python kernel for JupyterLite.
 
 ## Requirements
@@ -65,7 +63,7 @@ Filename: `'jupyter-lite.json'`
         "name": "async",
         "display_name": "Python (async)",
         "kernelSettings": { "shell.timeout": "1" },
-        "startInterfaceScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('**/*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\nfrom async_kernel.interface.callable import CallableKernelInterface\n\nCallableKernelInterface(settings).start(send=send, stopped=stopped)",
+        "startInterfaceScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('**/*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\nimport async_kernel.interface\n\nasync_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)",
         "kernelPostStartScript": ""
       }
     }
