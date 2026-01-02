@@ -100,8 +100,6 @@ celerybeat-schedule
 .project
 .pydevproject
 
-# mkdocs documentation
-/site
 
 # mypy
 .mypy_cache/
@@ -125,3 +123,4 @@ dmypy.json
 # JupyterLite
 .jupyterlite.doit.db
 _output/
+jupyterlite/
