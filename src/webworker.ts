@@ -66,6 +66,8 @@ function send(msgjson: string, buffers: any, blocking = false) {
     }
     msg.buffers = buffers_;
     buffers.destroy();
+  } else {
+    msg.buffers = [];
   }
   self.postMessage({ mode: 'msg', msg });
 }
