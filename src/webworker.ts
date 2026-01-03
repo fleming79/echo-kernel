@@ -34,7 +34,7 @@ async function log(log: ILogPayload) {
 // -----  Kernel Interface Callbacks -------
 
 /**
- * Send messages for the kernel.
+ * Send a kernel message to the client.
  *
  * @param msgjson A json string
  * @param buffers An array of buffers

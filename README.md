@@ -22,31 +22,12 @@ jupyter lite build
 
 ### Configuration
 
-The kernel will install all wheels included in the folder in which it was started.
+The kernel is configurable by adding entries in a configuration file (`jupyter-lite.{json,ipynb}`) or override  file (`overrides.json`) in one or more of the [well know locations](https://jupyterlite.readthedocs.io/en/stable/reference/cli.html#well-known-files)
+.
 
-The kernel can be configured by adding a section to the `'jupyter-lite.json'`
-configuration file.
+  ### Example config
 
-- **`pyodideUrl`**: The url to the CDN for Pyodide.
-- **`loadPyodideOptions`**: Options passed when calling
-  [loadPyodide](https://pyodide.org/en/stable/usage/api/js-api.html#exports.loadPyodide).
-  [options](https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig).
-- **`name`** (default='async'): The name to use to register the kernel.
-- **`language`** (default='python'): The language the kernel supports.
-- **`kernelSettings`**: Options passed to the kernel prior to starting it. Use dotted
-  values to override nested values/traits.
-- **`icon`** The icon file to use TODO: Add more detail.
-- **`startInterfaceScript`** A script to create an instance of a kernel. Use this for
-  advanced customisation of the kernel. By default, all wheels in the folder an
-  subfolders where the kernel is started will be installed prior to loading the kernel
-  starts. The example below includes the default code. The last line must be an
-  expression that returns the kernel instance.
-- **`kernelPostStartScript`** A script to call after the kernel has started. This is
-  asynchronous but the kernel will not be made available until it returns.
-
-#### Sample
-
-Filename: `'jupyter-lite.json'`
+typical filename: `jupyter-lite.json`
 
 ```json
 {
@@ -70,6 +51,26 @@ Filename: `'jupyter-lite.json'`
   }
 }
 ```
+
+
+- **`pyodideUrl`**: The url to the CDN for Pyodide.
+- **`loadPyodideOptions`**: Options passed when calling
+  [loadPyodide](https://pyodide.org/en/stable/usage/api/js-api.html#exports.loadPyodide).
+  [options](https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig).
+- **`name`** (default='async'): The name to use to register the kernel.
+- **`language`** (default='python'): The language the kernel supports.
+- **`kernelSettings`**: Options passed to the kernel prior to starting it. Use dotted
+  values to override nested values/traits.
+- **`icon`** The url of the icon to use. See: [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a logo in base64.
+- **`startInterfaceScript`** A script to create an instance of a kernel. Use this for
+  advanced customisation of the kernel. By default, all wheels in the folder an
+  subfolders where the kernel is started will be installed prior to loading the kernel
+  starts. The example below includes the default code. The last line must be an
+  expression that returns the kernel instance.
+- **`kernelPostStartScript`** A script to call after the kernel has started. This is
+  asynchronous but the kernel will not be made available until it returns.
+
+
 
 ## Contributing
 
@@ -97,11 +98,11 @@ jlpm build
 ```
 
 ```bash
-# Run JupyterLab in another terminal
-jupyter lite serve
+# Serve the jupyterlite repo
+jlpm serve
 ```
+Use the VSCode debug configuration "Jupyterlite frontend with Firefox" to launch a browse with the debugger attached.
 
-A VSCode debug config is provided to enable debugging of JavaScript.
 
 ### Packaging the extension
 

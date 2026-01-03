@@ -33,10 +33,11 @@
         "build:labextension:dev": "jupyter labextension build --development True .",
         "build:lib": "tsc --sourceMap",
         "build:lib:prod": "tsc",
-        "clean": "jlpm clean:lib",
+        "clean": "jlpm clean:lib && jlpm clean:jupyterlite",
         "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
         "clean:labextension": "rimraf jupyterlite_async_kernel/labextension jupyterlite_async_kernel/_version.py",
-        "clean:all": "jlpm clean:lib && jlpm clean:labextension",
+        "clean:jupyterlite": "rimraf jupyterlite",
+        "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:jupyterlite",
         "eslint": "jlpm eslint:check --fix",
         "eslint:check": "eslint . --cache --ext .ts,.tsx",
         "install:extension": "jlpm build",
@@ -47,7 +48,8 @@
         "prettier:check": "jlpm prettier:base --check",
         "watch": "run-p watch:src watch:labextension",
         "watch:src": "tsc -w --sourceMap",
-        "watch:labextension": "jupyter labextension watch ."
+        "watch:labextension": "jupyter labextension watch .",
+        "serve": "jupyter lite serve --lite-dir site --output-dir jupyterlite"
     },
     "dependencies": {
         "@jupyterlab/application": "^4.5.0",
