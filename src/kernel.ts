@@ -29,7 +29,7 @@ export class KernelRelay implements IKernel {
     this._logger = logger;
 
     // The webworker is built using eslint to ensure the imports can be imported at runtime.
-    // see: jlpm build:worker (called by jlpm build).
+    // see: jlpm build:worker (called by jlpm build). related: https://github.com/jupyterlite/pyodide-kernel/issues/222 https://github.com/jupyterlab/jupyterlab/issues/10197
     this._pyodideWorker = new Worker(new URL('./webworker.js', import.meta.url), {
       type: 'module'
     });
@@ -66,6 +66,10 @@ export class KernelRelay implements IKernel {
   async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
     await this.ready;
     this._pyodideWorker.postMessage({ mode: 'msg', msg });
+    if (this._interruptBuffer && msg.header.msg_type === 'interrupt_request') {
+      // https://pyodide.org/en/stable/usage/keyboard-interrupts.html
+      this._interruptBuffer[0] = 2;
+    }
   }
 
   /**
@@ -85,6 +89,7 @@ export class KernelRelay implements IKernel {
       }
       case 'ready': {
         this._ready.resolve();
+        this._interruptBuffer = e.data.interruptBuffer;
         break;
       }
       case 'stopped':
@@ -122,6 +127,7 @@ export class KernelRelay implements IKernel {
   readonly location: string;
 
   private _pyodideWorker: Worker;
+  private _interruptBuffer: Uint8Array | undefined;
   private _logger: (options: { payload: ILogPayload; kernelId: string }) => void;
   private _isDisposed = false;
   private _ready = new PromiseDelegate<void>();

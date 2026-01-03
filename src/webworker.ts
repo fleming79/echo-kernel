@@ -9,6 +9,9 @@ let driveFS: DriveFS;
 let pyodide: Pyodide.PyodideAPI;
 let kernelInterface: CallableKernelInterface.IKernelInterface;
 let options: CallableKernelInterface.IOptions;
+const interruptBuffer = crossOriginIsolated
+  ? new Uint8Array(new SharedArrayBuffer(1))
+  : null;
 
 /**
  * Initialize the kernel.
@@ -19,7 +22,8 @@ async function initialize(initOptions: CallableKernelInterface.IOptions) {
   await initRuntime();
   await initFilesystem();
   await startKernelInterface();
-  self.postMessage({ mode: 'ready' });
+
+  self.postMessage({ mode: 'ready', interruptBuffer });
 }
 
 /**
@@ -196,6 +200,9 @@ async function startKernelInterface() {
 
   if (options.kernelPostStartScript) {
     await pyodide.runPythonAsync(options.kernelPostStartScript);
+  }
+  if (interruptBuffer) {
+    pyodide.setInterruptBuffer(interruptBuffer);
   }
 }
 

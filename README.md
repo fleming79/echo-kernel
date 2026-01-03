@@ -22,10 +22,12 @@ jupyter lite build
 
 ### Configuration
 
-The kernel is configurable by adding entries in a configuration file (`jupyter-lite.{json,ipynb}`) or override  file (`overrides.json`) in one or more of the [well know locations](https://jupyterlite.readthedocs.io/en/stable/reference/cli.html#well-known-files)
+The kernel is configurable by adding entries in a configuration file
+(`jupyter-lite.{json,ipynb}`) or override file (`overrides.json`) in one or more of the
+[well know locations](https://jupyterlite.readthedocs.io/en/stable/reference/cli.html#well-known-files)
 .
 
-  ### Example config
+### Example config
 
 typical filename: `jupyter-lite.json`
 
@@ -52,7 +54,6 @@ typical filename: `jupyter-lite.json`
 }
 ```
 
-
 - **`pyodideUrl`**: The url to the CDN for Pyodide.
 - **`loadPyodideOptions`**: Options passed when calling
   [loadPyodide](https://pyodide.org/en/stable/usage/api/js-api.html#exports.loadPyodide).
@@ -61,7 +62,9 @@ typical filename: `jupyter-lite.json`
 - **`language`** (default='python'): The language the kernel supports.
 - **`kernelSettings`**: Options passed to the kernel prior to starting it. Use dotted
   values to override nested values/traits.
-- **`icon`** The url of the icon to use. See: [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a logo in base64.
+- **`icon`** The url of the icon to use. See:
+  [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a
+  logo in base64.
 - **`startInterfaceScript`** A script to create an instance of a kernel. Use this for
   advanced customisation of the kernel. By default, all wheels in the folder an
   subfolders where the kernel is started will be installed prior to loading the kernel
@@ -69,8 +72,6 @@ typical filename: `jupyter-lite.json`
   expression that returns the kernel instance.
 - **`kernelPostStartScript`** A script to call after the kernel has started. This is
   asynchronous but the kernel will not be made available until it returns.
-
-
 
 ## Contributing
 
@@ -98,11 +99,17 @@ jlpm build
 ```
 
 ```bash
+# Download / install wheels for jupyterlite demo
+
+uv run pip install -r site/embed-wheels.txt
+uv run pip download -r site/embed-wheels.txt --dest site/files --no-deps
+
 # Serve the jupyterlite repo
 jlpm serve
 ```
-Use the VSCode debug configuration "Jupyterlite frontend with Firefox" to launch a browse with the debugger attached.
 
+Use the VSCode debug configuration "Jupyterlite frontend with Firefox" to launch a
+browse with the debugger attached.
 
 ### Packaging the extension
 
