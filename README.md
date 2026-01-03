@@ -99,7 +99,7 @@ jlpm build
 ```
 
 ```bash
-# Download / install wheels for jupyterlite demo
+# Download / install wheels for jupyterlite demo (required for widgets to render and other federated extensions)
 
 uv run pip install -r site/embed-wheels.txt
 uv run pip download -r site/embed-wheels.txt --dest site/files --no-deps

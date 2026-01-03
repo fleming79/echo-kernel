@@ -6,7 +6,7 @@
       "@jupyterlite/async-kernel:kernel": {
         "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js",
         "loadPyodideOptions": {
-          "packages": ["matplotlib", "numpy", "sqlite3"],
+          "packages": ["matplotlib", "numpy", "sqlite3", "pandas"],
           "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide-lock.json?from-lite-config=1"
         },
         "name": "async",
