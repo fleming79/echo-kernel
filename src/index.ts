@@ -68,7 +68,8 @@ const kernel: JupyterFrontEndPlugin<void> = {
         resources: {
           'logo-32x32': config.logo,
           'logo-64x64': config.logo
-        }
+        },
+        interrupt_mode: 'message'
       },
       create: async (options: IKernel.IOptions): Promise<IKernel> => {
         return new KernelRelay(

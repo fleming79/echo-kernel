@@ -1,10 +1,11 @@
 import type { ILogPayload } from '@jupyterlab/logconsole';
-import type { KernelMessage } from '@jupyterlab/services';
+import { KernelMessage } from '@jupyterlab/services';
 import { IKernel } from '@jupyterlite/services';
 import { PromiseDelegate } from '@lumino/coreutils';
 import type { ISignal } from '@lumino/signaling';
 import { Signal } from '@lumino/signaling';
 import type { CallableKernelInterface } from './tokens';
+import { IInterruptRequestMsg } from '@jupyterlab/services/lib/kernel/messages';
 
 /**
  * A kernel interface to relay messages between the client and kernel running in a webworker.
@@ -59,6 +60,29 @@ export class KernelRelay implements IKernel {
   }
 
   /**
+   *
+   */
+  interrupt() {
+    this._logger({
+      payload: { data: 'Interrupt requested', level: 'warning', type: 'text' },
+      kernelId: this.id
+    });
+    if (this._interruptBuffer) {
+      // https://pyodide.org/en/stable/usage/keyboard-interrupts.html
+      this._interruptBuffer[0] = 2;
+    } else {
+      const msg = KernelMessage.createMessage<IInterruptRequestMsg>({
+        msgType: 'interrupt_request',
+        channel: 'control',
+        content: {},
+        session: ''
+      });
+
+      this._pyodideWorker.postMessage({ mode: 'msg', msg });
+    }
+  }
+
+  /**
    * Handle an incoming message from the client.
    *
    * @param msg The message event
@@ -66,10 +90,6 @@ export class KernelRelay implements IKernel {
   async handleMessage(msg: KernelMessage.IMessage): Promise<void> {
     await this.ready;
     this._pyodideWorker.postMessage({ mode: 'msg', msg });
-    if (this._interruptBuffer && msg.header.msg_type === 'interrupt_request') {
-      // https://pyodide.org/en/stable/usage/keyboard-interrupts.html
-      this._interruptBuffer[0] = 2;
-    }
   }
 
   /**
