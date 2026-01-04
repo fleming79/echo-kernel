@@ -54,7 +54,7 @@ jobs:
         run: | 
           uv sync
           uv run pip install -r site/embed-wheels.txt
-          uv run pip download -r site/embed-wheels.txt --dest site/files --no-deps
+          uv run pip download -r site/embed-wheels.txt --dest site/files/wheels --no-deps
 
       - name: Build the JupyterLite site
         run: |
