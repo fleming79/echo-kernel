@@ -53,12 +53,11 @@ jobs:
       - name: Load the extension
         run: | 
           uv sync
-          uv run pip install -r site/embed-wheels.txt
-          uv run pip download -r site/embed-wheels.txt --dest site/files/wheels --no-deps
+          uv run jlpm jupyterlite:setup
 
       - name: Build the JupyterLite site
         run: |
-          uv run jupyter lite build --lite-dir site --output-dir jupyterlite
+          uv run jlpm jupyterlite:build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

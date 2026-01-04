@@ -90,19 +90,15 @@ uv venv --python 3.13
 uv sync
 # Activate the environment
 
-# Link your development version of the extension with JupyterLab
-jupyter labextension develop . --overwrite
+# Install packages
+jlpm
 
 # Rebuild extension Typescript source after making changes
 jlpm clean:all
 jlpm build
-```
 
-```bash
-# Download / install wheels for jupyterlite demo (required for widgets to render and other federated extensions)
-
-uv run pip install -r site/embed-wheels.txt
-uv run pip download -r site/embed-wheels.txt --dest site/files/wheels --no-deps
+# Setup jupyterlite for development
+jlpm jupyterlite:setup
 
 # Serve the jupyterlite repo
 jlpm serve
