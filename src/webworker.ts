@@ -155,7 +155,7 @@ async function initFilesystem(): Promise<void> {
     localPath = parts[1];
   }
 
-  log({ type: 'text', level: 'info', data: `Loading filesystem` });
+  log({ type: 'text', level: 'info', data: 'Loading filesystem' });
 
   driveFS = new DriveFS({
     FS: FS as any,
@@ -200,21 +200,21 @@ async function startKernelInterface() {
   const settings = options.kernelSettings || {};
   const namespace = pyodide.toPy({ settings, send, stopped });
 
-  log({ type: 'text', level: 'info', data: `Calling startInterfaceScript` });
+  log({ type: 'text', level: 'info', data: 'Calling startInterfaceScript' });
 
   kernelInterface = await pyodide.runPythonAsync(startInterfaceScript, {
     globals: namespace
   });
 
   if (interruptBuffer) {
-    log({ type: 'text', level: 'info', data: `Keyboard interrupt available` });
+    log({ type: 'text', level: 'info', data: 'Keyboard interrupt available' });
     pyodide.setInterruptBuffer(interruptBuffer);
   } else {
-    log({ type: 'text', level: 'warning', data: `Keyboard interrupt not available` });
+    log({ type: 'text', level: 'warning', data: 'Keyboard interrupt not available' });
   }
 
   if (options.kernelPostStartScript) {
-    log({ type: 'text', level: 'info', data: `Calling kernelPostStartScript` });
+    log({ type: 'text', level: 'info', data: 'Calling kernelPostStartScript' });
     await pyodide.runPythonAsync(options.kernelPostStartScript);
   }
 }

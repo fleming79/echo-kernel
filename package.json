@@ -38,7 +38,7 @@
         "clean:labextension": "rimraf jupyterlite_async_kernel/labextension jupyterlite_async_kernel/_version.py",
         "clean:jupyterlite": "rimraf jupyterlite",
         "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:jupyterlite",
-        "jupyterlite:setup": "uv run pip install -r site/embed-wheels.txt && uv run pip download -r site/embed-wheels.txt --dest site/files/wheels --no-deps",
+        "jupyterlite:setup": "uv run pip install -r site/embed-wheels.txt && uv run pip download --platform emscripten --only-binary=:all: --python-version=3.13  --no-deps -r site/embed-wheels.txt --dest site/files/wheels",
         "jupyterlite:build": "jupyter lite build --lite-dir site --output-dir jupyterlite",
         "serve": "jupyter labextension develop . --overwrite && jupyter lite serve --lite-dir site --output-dir jupyterlite --LiteBuildConfig.extra_http_headers=Cross-Origin-Embedder-Policy=require-corp --LiteBuildConfig.extra_http_headers=Cross-Origin-Opener-Policy=same-origin",
         "eslint": "jlpm eslint:check --fix",

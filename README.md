@@ -46,7 +46,7 @@ typical filename: `jupyter-lite.json`
         "name": "async",
         "display_name": "Python (async)",
         "kernelSettings": { "shell.timeout": "1" },
-        "startInterfaceScript": "import micropip\nimport pathlib\n\ndeps = [f'emfs:./{p}' for p in pathlib.Path('.').glob('**/*.whl')]\ndeps.append('async-kernel')\nawait micropip.install(deps, keep_going=True, reinstall=True)\nimport async_kernel.interface\n\nasync_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)",
+        "startInterfaceScript": "",
         "kernelPostStartScript": ""
       }
     }
@@ -65,13 +65,75 @@ typical filename: `jupyter-lite.json`
 - **`icon`** The url of the icon to use. See:
   [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a
   logo in base64.
-- **`startInterfaceScript`** A script to create an instance of a kernel. Use this for
-  advanced customisation of the kernel. By default, all wheels in the folder an
-  subfolders where the kernel is started will be installed prior to loading the kernel
-  starts. The example below includes the default code. The last line must be an
-  expression that returns the kernel instance.
+- **[`startInterfaceScript`](#startinterfacescript)** The script to start the kernel.
 - **`kernelPostStartScript`** A script to call after the kernel has started. This is
   asynchronous but the kernel will not be made available until it returns.
+
+### startInterfaceScript
+
+The interface script loads the kernel interface and starts the kernel. This can be
+customised as desired.
+
+The namespace where the start script is called looks like this.
+
+```python
+{
+ send: Callable[[str, list | None, bool], None | str],
+stopped: Callable[[], None],
+settings: dict | None = None
+}
+```
+
+see
+[start_kernel_callable_interface](https://fleming79.github.io/async-kernel/latest/reference/interface/#async_kernel.interface.start_kernel_callable_interface)
+to see
+
+[https://fleming79.github.io/async-kernel/latest/reference/interface/#async_kernel.interface.start_kernel_callable_interface]
+
+The script must return a namespace (dictionary) with
+[required handlers](https://fleming79.github.io/async-kernel/latest/reference/interface/#async_kernel.interface.callable.Handlers).
+
+#### Default startInterfaceScript
+
+```python
+import micropip
+import pathlib
+
+# locate all wheels in the current folder and below
+deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("**/*.whl")]
+
+# Add async-kernel as a dependency
+deps.append("async-kernel")
+
+# Install all wheels
+await micropip.install(deps, keep_going=True, reinstall=True)
+
+import async_kernel.interface
+
+# Start the interface and return the handlers
+async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)
+```
+
+### Embedding wheels
+
+A convenient way to embed wheels in jupyterlite is to list them in a text file
+"embed-wheels.txt". Without knowing which files are federated extensions, the safest
+thing to do is to install all the embedded files locally, and then to download the
+wheels into the files directory. The downloaded wheels need to taget pyodide.
+
+See "jupyterlite:setup" in ['package.json'](./package.json) for an example.
+
+```bash
+# Install wheels locally
+uv run pip install -r site/embed-wheels.txt
+
+# Downoad wheels
+uv run pip download --platform emscripten --only-binary=:all: --python-version=3.13  --no-deps -r site/embed-wheels.txt --dest site/files/wheels
+```
+
+#### Piplite/micropip
+
+Piplite is not implemented for this kernel. micropip can be used instead.
 
 ## Contributing
 
