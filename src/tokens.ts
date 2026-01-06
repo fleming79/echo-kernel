@@ -27,14 +27,13 @@ export namespace CallableKernelInterface {
     baseUrl: string;
 
     /**
-     * The URL to fetch Pyodide.
-     * Plugin configurable.
+     * The URL to fetch Pyodide (Plugin configurable).
      */
     pyodideUrl: string;
 
     /**
-     * additional options to provide to `loadPyodide`
-     * Plugin configurable.
+     * Additional options to provide to `loadPyodide` (Plugin configurable).
+     *
      * @see https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig
      */
     loadPyodideOptions: Record<string, any> & {
@@ -48,27 +47,35 @@ export namespace CallableKernelInterface {
     browsingContextId: string;
 
     /**
-     * Settings to load into the python kernel during instantiation.
+     * Settings made available in the namespace when calling `startScript`.
      * Plugin configurable.
      */
     kernelSettings: any;
 
     /**
-     * A script to run to load the kernel interface.
+     * A Python script to start the kernel with a callback interface (Plugin configurable).
      *
-     * options are provided in the namespace while the scrupt must return a function
-     * that when called will start the kernel and return the interface below.
+     * The script should use the objects: `settings`, `send` and `stopped`.
+     *
+     * `settings`: A mapping of settings (default passes the settings to the kernel).
+     * `send`: A callable for the kernel to send messages to the client.
+     * `stopped`: A callback for when the kernel is stopped.
+     *
+     * The script should return an awaitable that resolves with the `@interface IKernelInterface`
+     *
      */
     startScript: string;
 
     /**
-     * A script to run after the kernel has started.
+     * A Python script to run once the kernel has started (Plugin configurable).
      */
     postStartScript: string;
   }
 
   /**
-   * The interface to the kernel returned by calling the method returned from .
+   * The kernel interface callbacks (Python).
+   *
+   * This defines the callbacks expected as the result of the last line of code in the `startScript`.
    */
   export interface IKernelInterface {
     /**
@@ -80,7 +87,7 @@ export namespace CallableKernelInterface {
     handle_msg: (msg_json: string, buffers: Array<Buffer> | undefined) => void;
 
     /**
-     * The kernel interface to stop the kernel.
+     * The callback to stop the kernel.
      */
     stop: () => void;
   }
