@@ -46,8 +46,8 @@ typical filename: `jupyter-lite.json`
         "name": "async",
         "display_name": "Python (async)",
         "kernelSettings": { "shell.timeout": "1" },
-        "startInterfaceScript": "",
-        "kernelPostStartScript": ""
+        "startScript": "",
+        "postStartScript": ""
       }
     }
   }
@@ -65,11 +65,11 @@ typical filename: `jupyter-lite.json`
 - **`icon`** The url of the icon to use. See:
   [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a
   logo in base64.
-- **[`startInterfaceScript`](#startinterfacescript)** The script to start the kernel.
-- **`kernelPostStartScript`** A script to call after the kernel has started. This is
+- **[`startScript`](#startinterfacescript)** The script to start the kernel.
+- **`postStartScript`** A script to call after the kernel has started. This is
   asynchronous but the kernel will not be made available until it returns.
 
-### startInterfaceScript
+### startScript
 
 The interface script loads the kernel interface and starts the kernel. This can be
 customised as desired.
@@ -93,7 +93,7 @@ to see
 The script must return a namespace (dictionary) with
 [required handlers](https://fleming79.github.io/async-kernel/latest/reference/interface/#async_kernel.interface.callable.Handlers).
 
-#### Default startInterfaceScript
+#### Default startScript
 
 ```python
 import micropip

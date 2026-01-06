@@ -183,8 +183,8 @@ async function startKernelInterface() {
   const micropip = pyodide.pyimport('micropip');
   await micropip.install('ssl');
 
-  const startInterfaceScript =
-    options.startInterfaceScript ||
+  const startScript =
+    options.startScript ||
     `
   import micropip
   import pathlib
@@ -200,9 +200,9 @@ async function startKernelInterface() {
   const settings = options.kernelSettings || {};
   const namespace = pyodide.toPy({ settings, send, stopped });
 
-  log({ type: 'text', level: 'info', data: 'Calling startInterfaceScript' });
+  log({ type: 'text', level: 'info', data: 'Calling startScript' });
 
-  kernelInterface = await pyodide.runPythonAsync(startInterfaceScript, {
+  kernelInterface = await pyodide.runPythonAsync(startScript, {
     globals: namespace
   });
 
@@ -213,9 +213,9 @@ async function startKernelInterface() {
     log({ type: 'text', level: 'warning', data: 'Keyboard interrupt not available' });
   }
 
-  if (options.kernelPostStartScript) {
-    log({ type: 'text', level: 'info', data: 'Calling kernelPostStartScript' });
-    await pyodide.runPythonAsync(options.kernelPostStartScript);
+  if (options.postStartScript) {
+    log({ type: 'text', level: 'info', data: 'Calling postStartScript' });
+    await pyodide.runPythonAsync(options.postStartScript);
   }
 }
 

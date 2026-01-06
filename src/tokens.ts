@@ -59,12 +59,12 @@ export namespace CallableKernelInterface {
      * options are provided in the namespace while the scrupt must return a function
      * that when called will start the kernel and return the interface below.
      */
-    startInterfaceScript: string;
+    startScript: string;
 
     /**
      * A script to run after the kernel has started.
      */
-    kernelPostStartScript: string;
+    postStartScript: string;
   }
 
   /**

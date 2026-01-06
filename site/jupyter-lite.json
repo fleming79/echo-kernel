@@ -12,8 +12,8 @@
         "name": "async",
         "display_name": "Python (async)",
         "kernelSettings": {},
-        "startInterfaceScript": "",
-        "kernelPostStartScript": ""
+        "startScript": "",
+        "postStartScript": ""
       }
     }
   }
