@@ -20,6 +20,17 @@
       "presentation": {
         "hidden": false
       }
+    },
+    {
+      "name": "Jupyterlite with Editor Browser",
+      "type": "editor-browser",
+      "request": "launch",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}",
+      "pathMapping": {
+        "url": "webpack://jupyterlite/async-kernel/src",
+        "path": "${workspaceFolder}/src"
+      }
     }
   ]
 }

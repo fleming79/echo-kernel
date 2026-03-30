@@ -166,8 +166,11 @@ jlpm jupyterlite:setup
 jlpm serve
 ```
 
-Use the VSCode debug configuration "Jupyterlite frontend with Firefox" to launch a
-browse with the debugger attached.
+Use one of the VSCode debug configurations to launch a browse with the debugger attached
+
+- "Jupyterlite frontend with Firefox"
+- "Jupyterlite with Editor Browser" 
+
 
 ### Packaging the extension
 
