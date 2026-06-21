@@ -115,7 +115,6 @@ async function initRuntime(): Promise<void> {
     );
     loadPyodide = pyodideModule.loadPyodide;
   } else {
-    // @ts-expect-error `pyodideUrl` is a variable.
     importScripts(pyodideUrl);
     loadPyodide = (self as any).loadPyodide;
   }
