@@ -816,7 +816,7 @@ __metadata:
     eslint-config-prettier: ^9.0.0
     eslint-plugin-prettier: ^5.0.0
     prettier: ^3.7.4
-    pyodide: 0.29.0
+    pyodide: ^314.0.0
     rimraf: ^6.0.1
     typescript: ~5.2.2
   languageName: unknown
@@ -3596,13 +3596,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pyodide@npm:0.29.0":
-  version: 0.29.0
-  resolution: "pyodide@npm:0.29.0"
+"pyodide@npm:^314.0.0":
+  version: 314.0.0
+  resolution: "pyodide@npm:314.0.0"
   dependencies:
     "@types/emscripten": ^1.41.4
     ws: ^8.5.0
-  checksum: 4e9d69e6cfd63c1fe23e4d955c0ed81dd99029d5521f911a960a95f267963092320afc7daa0dae90e918b3019cacf978cf23891c8686043095f03bc3ed7a5907
+  checksum: 81b2dcef58b83fd5bfb637f55a70060a22bc98f742c5d02685ce92849f2a662d4154e85fb9533644839ad2cc9d2be323a04c3938acf8b2b66649048441955f0a
   languageName: node
   linkType: hard
 
@@ -4434,7 +4434,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.11.0, ws@npm:^8.5.0":
+"ws@npm:^8.11.0":
   version: 8.18.3
   resolution: "ws@npm:8.18.3"
   peerDependencies:
@@ -4446,6 +4446,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: d64ef1631227bd0c5fe21b3eb3646c9c91229402fb963d12d87b49af0a1ef757277083af23a5f85742bae1e520feddfb434cb882ea59249b15673c16dc3f36e0
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.5.0":
+  version: 8.21.0
+  resolution: "ws@npm:8.21.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 83ff89ae011bc5c3c5605a45a0d50e12589143c7500ca4de83a8d43b3cd26e71f422cb3206fd1a9e6d541d666eeb66255c30d095d62d413b3c7afe5d2c5cb928
   languageName: node
   linkType: hard
 

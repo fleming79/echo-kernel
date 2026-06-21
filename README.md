@@ -38,10 +38,10 @@ typical filename: `jupyter-lite.json`
     "appName": "JupyterLite",
     "litePluginSettings": {
       "@jupyterlite/async-kernel:kernel": {
-        "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js",
+        "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide.mjs",
         "loadPyodideOptions": {
-          "packages": ["matplotlib", "micropip", "numpy", "sqlite3", "ssl"],
-          "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide-lock.json?from-lite-config=1"
+          "packages": ["matplotlib", "micropip", "numpy"],
+          "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide-lock.json?from-lite-config=1"
         },
         "name": "async",
         "display_name": "Python (async)",
@@ -119,7 +119,7 @@ async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stoppe
 A convenient way to embed wheels in jupyterlite is to list them in a text file
 "embed-wheels.txt". Without knowing which files are federated extensions, the safest
 thing to do is to install all the embedded files locally, and then to download the
-wheels into the files directory. The downloaded wheels need to taget pyodide.
+wheels into the files directory. The downloaded wheels need to target pyemscripten_2026_0.
 
 See "jupyterlite:setup" in ['package.json'](./package.json) for an example.
 
@@ -128,7 +128,7 @@ See "jupyterlite:setup" in ['package.json'](./package.json) for an example.
 uv run pip install -r site/embed-wheels.txt
 
 # Downoad wheels
-uv run pip download --platform emscripten --only-binary=:all: --python-version=3.13  --no-deps -r site/embed-wheels.txt --dest site/files/wheels
+uv run pip download --platform pyemscripten_2026_0 --only-binary=:all: --python-version=3.14  --no-deps -r site/embed-wheels.txt --dest site/files/wheels
 ```
 
 #### Piplite/micropip
@@ -155,18 +155,21 @@ uv sync
 # Install packages
 jlpm
 
-# Rebuild extension Typescript source after making changes
+# Rebuild after making changes to source or for the first time
 jlpm clean:all
 jlpm build
 
-# Setup jupyterlite for development
+# Setup Jupyterlite for development 
+# Note: This installs dependencies listed embed-wheels.txt in the current venv. 
+# This is necessary for federated extension (Jupyterlab extensions) such as IPywidgets
+
 jlpm jupyterlite:setup
 
 # Serve the jupyterlite repo
 jlpm serve
 ```
 
-Use one of the VSCode debug configurations to launch a browse with the debugger attached
+Use one of the VSCode debug configurations to launch a browser with the debugger attached
 
 - "Jupyterlite frontend with Firefox"
 - "Jupyterlite with Editor Browser" 

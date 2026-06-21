@@ -4,14 +4,14 @@
     "appName": "JupyterLite",
     "litePluginSettings": {
       "@jupyterlite/async-kernel:kernel": {
-        "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js",
+        "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide.mjs",
         "loadPyodideOptions": {
-          "packages": ["matplotlib", "numpy", "sqlite3", "pandas"],
-          "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide-lock.json?from-lite-config=1"
+          "packages": [],
+          "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide-lock.json?from-lite-config=1"
         },
         "name": "async",
         "display_name": "Python (async)",
-        "kernelSettings": {},
+        "kernelSettings": {"name":"async"},
         "startScript": "",
         "postStartScript": ""
       }

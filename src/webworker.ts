@@ -88,6 +88,17 @@ function stopped() {
   self.postMessage({ mode: 'stopped' });
 }
 
+const _importScripts: any = (globalThis as any).importScripts;
+
+(globalThis as any).importScripts = function importScripts(arg: string) {
+  // This webworker is type module not classic, but the check in pyodide 314 check doesn't think so.
+  // We bypass isClassicWorker check in https://github.com/pyodide/pyodide/blob/807f16b054b2b0b4d5da3c8d465b502db92fdcaf/src/js/environments.ts#L117
+  if (arg === 'data:text/javascript,') {
+    throw new Error('bypass');
+  }
+  return _importScripts(arg);
+};
+
 // ----- End Kernel Interface Callbacks -------
 
 /**
@@ -179,9 +190,8 @@ async function initFilesystem(): Promise<void> {
  *
  */
 async function startKernelInterface() {
+   
   await pyodide.loadPackage('micropip');
-  const micropip = pyodide.pyimport('micropip');
-  await micropip.install('ssl');
 
   const startScript =
     options.startScript ||
