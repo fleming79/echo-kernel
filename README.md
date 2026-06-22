@@ -1,6 +1,9 @@
 # jupyterlite-async-kernel
 
-An asynchronous python kernel for JupyterLite.
+An asynchronous Python kernel for JupyterLite providing an IPython shell.
+
+**Note: This is a demo implementation of [async-kernel](github.com/fleming79/async-kernel) running in Jupyterlite.**
+ 
 
 ## Requirements
 
@@ -11,7 +14,7 @@ An asynchronous python kernel for JupyterLite.
 To install the extension, execute:
 
 ```bash
-pip install jupyterlite-async-kernel
+pip install git+https://github.com/fleming79/echo-kernel
 ```
 
 Then build your JupyterLite site:
@@ -40,12 +43,12 @@ typical filename: `jupyter-lite.json`
       "@jupyterlite/async-kernel:kernel": {
         "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide.mjs",
         "loadPyodideOptions": {
-          "packages": ["matplotlib", "micropip", "numpy"],
+          "packages": [],
           "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide-lock.json?from-lite-config=1"
         },
         "name": "async",
         "display_name": "Python (async)",
-        "kernelSettings": { "shell.timeout": "1" },
+        "kernelSettings": {},
         "startScript": "",
         "postStartScript": ""
       }
@@ -131,9 +134,9 @@ uv run pip install -r site/embed-wheels.txt
 uv run pip download --platform pyemscripten_2026_0 --only-binary=:all: --python-version=3.14  --no-deps -r site/embed-wheels.txt --dest site/files/wheels
 ```
 
-#### Piplite/micropip
+#### Pip/micropip
 
-Piplite is not implemented for this kernel. micropip can be used instead.
+Pip is implemented in async-kernel and is directly available as the magic '%pip'.
 
 ## Contributing
 
