@@ -81,6 +81,7 @@ function send(msgjson: string, buffers: any, blocking = false) {
  */
 function stopped() {
   try {
+    log({ type: 'text', level: 'info', data: 'The kernel has stopped' });
     pyodide.pyimport('sys').exit(0);
   } catch {
     // sys.exit raises an error.
@@ -214,6 +215,7 @@ async function startKernelInterface() {
   kernelInterface = await pyodide.runPythonAsync(startScript, {
     globals: namespace
   });
+  log({ type: 'text', level: 'info', data: 'The kernel has started' });
 
   if (interruptBuffer) {
     log({ type: 'text', level: 'info', data: 'Keyboard interrupt available' });
