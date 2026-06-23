@@ -26,9 +26,8 @@ dependencies = [
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
 [dependency-groups]
-dev = [
-    "jupyter-releaser>=1.10.1",
-    "jupyterlite-core[all]",
+dev = [ 
+    "jupyterlite-core[all]>=0.8.0rc0",
     "nodejs-wheel-binaries",
 ]
 

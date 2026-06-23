@@ -7,7 +7,7 @@ An asynchronous Python kernel for JupyterLite providing an IPython shell.
 
 ## Requirements
 
-- JupyterLite >= 0.7.0
+- JupyterLite >= 0.8.0
 
 ## Install
 

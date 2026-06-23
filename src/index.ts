@@ -10,6 +10,7 @@ import type { IKernel } from '@jupyterlite/services';
 import { IKernelSpecs } from '@jupyterlite/services';
 import { KernelRelay } from './kernel';
 
+import defaults from './defaults.json';
 /**
  * The id for the extension, and key in the litePlugins.
  */
@@ -31,7 +32,7 @@ const kernel: JupyterFrontEndPlugin<void> = {
     const { sessions } = app.serviceManager;
 
     const config = {
-      ...require('./defaults.json'),
+      ...defaults,
       ...(JSON.parse(PageConfig.getOption('litePluginSettings') || '{}')[PLUGIN_ID] ||
         {})
     };
