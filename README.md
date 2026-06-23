@@ -1,8 +1,8 @@
 # jupyterlite-async-kernel
 
-An asynchronous Python kernel for JupyterLite providing an IPython shell.
+A Python kernel for JupyterLite providing an IPython shell.
 
-**Note: This is a demo implementation of [async-kernel](github.com/fleming79/async-kernel) running in Jupyterlite.**
+**Note: This is a demo implementation of [async-kernel](https://github.com/fleming79/async-kernel) running in Jupyterlite.**
  
 
 ## Requirements
@@ -63,8 +63,8 @@ typical filename: `jupyter-lite.json`
   [options](https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig).
 - **`name`** (default='async'): The name to use to register the kernel.
 - **`language`** (default='python'): The language the kernel supports.
-- **`kernelSettings`**: Options passed to the kernel prior to starting it. Use dotted
-  values to override nested values/traits.
+- **`kernelSettings`**: Options passed to the kernel when launching. Requires 
+  [traitlets style configuration](https://fleming79.github.io/async-kernel/latest/reference/interface/?h=callable#async_kernel.interface.start_kernel_callable_interface).
 - **`icon`** The url of the icon to use. See:
   [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a
   logo in base64.
