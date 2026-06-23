@@ -7,9 +7,9 @@
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.com/jupyterlite/async-kernel",
+    "homepage": "https://github.com/fleming79/echo-kernel",
     "bugs": {
-        "url": "https://github.com/jupyterlite/async-kernel/issues"
+        "url": "https://github.com/fleming79/echo-kernel/issues"
     },
     "license": "BSD-3-Clause",
     "author": "JupyterLite Contributors",
@@ -23,7 +23,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.com/jupyterlite/async-kernel.git"
+        "url": "https://github.com/fleming79/echo-kernel.git"
     },
     "scripts": {
         "build": "jlpm build:lib && jlpm build:worker && jlpm build:labextension:dev",

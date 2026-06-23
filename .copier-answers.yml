@@ -9,6 +9,6 @@ kind: frontend
 labextension_name: '@jupyterlite/async-kernel'
 project_short_description: Async kernel for JupyterLite
 python_name: jupyterlite_async_kernel
-repository: https://github.com/jupyterlite/async-kernel
+repository: https://github.com/fleming79/echo-kernel
 test: false
 
