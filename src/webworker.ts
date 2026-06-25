@@ -196,18 +196,23 @@ async function startKernelInterface() {
   const startScript =
     options.startScript ||
     `
+  global settings
   import micropip
   import pathlib
 
-  deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("**/*.whl")]
+  deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("wheels/*.whl")]
   deps.append("async-kernel")
   await micropip.install(deps, keep_going=True, reinstall=True)
   
   import async_kernel.interface
 
+  if (f:= pathlib.Path("settings.json")).exists():
+    import json
+    settings = json.loads(f.read_bytes())
+
   async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)
   `;
-  const settings = options.kernelSettings || {};
+  const settings = options.settings || {};
   const namespace = pyodide.toPy({ settings, send, stopped });
 
   log({ type: 'text', level: 'info', data: 'Calling startScript' });

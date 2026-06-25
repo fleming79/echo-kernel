@@ -26,7 +26,8 @@ dependencies = [
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
 [dependency-groups]
-dev = [ 
+dev = [
+    "async-kernel>=0.20.1",
     "jupyterlite-core[all]>=0.8.0rc0",
     "nodejs-wheel-binaries",
 ]

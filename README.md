@@ -48,7 +48,7 @@ typical filename: `jupyter-lite.json`
         },
         "name": "async",
         "display_name": "Python (async)",
-        "kernelSettings": {},
+        "settings": {},
         "startScript": "",
         "postStartScript": ""
       }
@@ -63,7 +63,7 @@ typical filename: `jupyter-lite.json`
   [options](https://pyodide.org/en/stable/usage/api/js-api.html#exports.PyodideConfig).
 - **`name`** (default='async'): The name to use to register the kernel.
 - **`language`** (default='python'): The language the kernel supports.
-- **`kernelSettings`**: Options passed to the kernel when launching. Requires 
+- **`settings`**: Options passed to the kernel when launching. Requires 
   [traitlets style configuration](https://fleming79.github.io/async-kernel/latest/reference/interface/?h=callable#async_kernel.interface.start_kernel_callable_interface).
 - **`icon`** The url of the icon to use. See:
   [copy_logo_to_defaults.py](./copy_logo_to_defaults.py) for an example of embedding a
@@ -99,22 +99,21 @@ The script must return a namespace (dictionary) with
 #### Default startScript
 
 ```python
-import micropip
-import pathlib
+  global settings
+  import micropip
+  import pathlib
 
-# locate all wheels in the current folder and below
-deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("**/*.whl")]
+  deps = [f"emfs:./{p}" for p in pathlib.Path(".").glob("wheels/*.whl")]
+  deps.append("async-kernel")
+  await micropip.install(deps, keep_going=True, reinstall=True)
+  
+  import async_kernel.interface
 
-# Add async-kernel as a dependency
-deps.append("async-kernel")
+  if (f:= pathlib.Path("settings.json")).exists():
+    import json
+    settings = json.loads(f.read_bytes())
 
-# Install all wheels
-await micropip.install(deps, keep_going=True, reinstall=True)
-
-import async_kernel.interface
-
-# Start the interface and return the handlers
-async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)
+  async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stopped, settings=settings)
 ```
 
 ### Embedding wheels
@@ -122,7 +121,7 @@ async_kernel.interface.start_kernel_callable_interface(send=send, stopped=stoppe
 A convenient way to embed wheels in jupyterlite is to list them in a text file
 "embed-wheels.txt". Without knowing which files are federated extensions, the safest
 thing to do is to install all the embedded files locally, and then to download the
-wheels into the files directory. The downloaded wheels need to target pyemscripten_2026_0.
+wheels into the files directory. The downloaded wheels should target pyemscripten_2026_0.
 
 See "jupyterlite:setup" in ['package.json'](./package.json) for an example.
 

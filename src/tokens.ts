@@ -50,7 +50,7 @@ export namespace CallableKernelInterface {
      * Settings made available in the namespace when calling `startScript`.
      * Plugin configurable.
      */
-    kernelSettings: any;
+    settings: any;
 
     /**
      * A Python script to start the kernel with a callback interface (Plugin configurable).

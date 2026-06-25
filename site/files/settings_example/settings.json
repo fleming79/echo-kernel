@@ -1,0 +1,4 @@
+{
+  "kernel_class": "echo_kernel.Kernel",
+  "flags": ["debug"]
+}
