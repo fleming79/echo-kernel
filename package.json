@@ -56,8 +56,8 @@
     "dependencies": {
         "@jupyterlab/coreutils": "^6.6.0",
         "@jupyterlab/logconsole": "^4.6.0",
-        "@jupyterlite/apputils": "^0.8.0-rc.0",
-        "@jupyterlite/services": "^0.8.0-rc.0",
+        "@jupyterlite/apputils": "^0.8.0",
+        "@jupyterlite/services": "^0.8.0",
         "@lumino/coreutils": "^2.2.2"
     },
     "devDependencies": {
