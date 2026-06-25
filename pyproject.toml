@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.5.0", "jupyterlab>=4.0.0,<5", "hatch-nodejs-version>=0.3.2", "nodejs-wheel-binaries"]
+requires = ["hatchling>=1.5.0", "jupyterlab>=4.0.0,<5", "hatch-nodejs-version>=0.3.2", "nodejs-wheel"]
 build-backend = "hatchling.build"
 
 [project]
@@ -29,7 +29,7 @@ dynamic = ["version", "description", "authors", "urls", "keywords"]
 dev = [
     "async-kernel>=0.20.1",
     "jupyterlite-core[all]>=0.8.0",
-    "nodejs-wheel-binaries",
+    "nodejs-wheel",
 ]
 
 

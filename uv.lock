@@ -829,7 +829,7 @@ source = { editable = "." }
 dev = [
     { name = "async-kernel" },
     { name = "jupyterlite-core", extra = ["all"] },
-    { name = "nodejs-wheel-binaries" },
+    { name = "nodejs-wheel" },
 ]
 
 [package.metadata]
@@ -838,7 +838,7 @@ dev = [
 dev = [
     { name = "async-kernel", specifier = ">=0.20.1" },
     { name = "jupyterlite-core", extras = ["all"], specifier = ">=0.8.0" },
-    { name = "nodejs-wheel-binaries" },
+    { name = "nodejs-wheel" },
 ]
 
 [[package]]
@@ -1042,6 +1042,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b4/73/731debf26e27e0a0323d7bda270dc2f634b398e38f040a09da1f4351d0aa/nest_asyncio2-1.7.2.tar.gz", hash = "sha256:1921d70b92cc4612c374928d081552efb59b83d91b2b789d935c665fa01729a8", size = 14743, upload-time = "2026-02-13T00:34:04.386Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c5/3c/3179b85b0e1c3659f0369940200cd6d0fa900e6cefcc7ea0bc6dd0e29ffb/nest_asyncio2-1.7.2-py3-none-any.whl", hash = "sha256:f5dfa702f3f81f6a03857e9a19e2ba578c0946a4ad417b4c50a24d7ba641fe01", size = 7843, upload-time = "2026-02-13T00:34:02.691Z" },
+]
+
+[[package]]
+name = "nodejs-wheel"
+version = "24.16.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nodejs-wheel-binaries" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/02/ea/69c332dde5ea3596492afe35748cdd07437a7d1f5cb251f61868193df539/nodejs_wheel-24.16.0.tar.gz", hash = "sha256:23c75d52ad1c3274c15045e80b1a898c1f5b13ac66d09d15514939125869fb41", size = 2966, upload-time = "2026-05-30T16:52:08.875Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/00/d1/e595c9e360c216ea1422e7b701caf4c7e841d91349c146f92d2bc885ab8a/nodejs_wheel-24.16.0-py3-none-any.whl", hash = "sha256:0d20f5651d0c93bb951a013c31de4f58901be53287010438bb9757cdec198529", size = 3986, upload-time = "2026-05-30T16:51:37.837Z" },
 ]
 
 [[package]]
