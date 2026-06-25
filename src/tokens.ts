@@ -84,7 +84,7 @@ export namespace CallableKernelInterface {
      * @param msg_json The message encoded as a json string
      * @param buffers Buffers corresponding to the message
      */
-    handle_msg: (msg_json: string, buffers: Array<Buffer> | undefined) => void;
+    handle_msg: (msg_json: string, buffers: Array<any> | undefined) => void;
 
     /**
      * The callback to stop the kernel.
