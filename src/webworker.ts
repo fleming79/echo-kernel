@@ -1,3 +1,5 @@
+// The webworker is built to be self-contained.
+
 import type { ILogPayload } from '@jupyterlab/logconsole';
 import type Pyodide from 'pyodide';
 import type { CallableKernelInterface } from './tokens';
@@ -190,7 +192,6 @@ async function initFilesystem(): Promise<void> {
  *
  */
 async function startKernelInterface() {
-   
   await pyodide.loadPackage('micropip');
 
   const startScript =

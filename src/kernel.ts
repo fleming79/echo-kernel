@@ -29,14 +29,12 @@ export class KernelRelay implements IKernel {
     this._sendMessage = sendMessage;
     this._logger = logger;
 
-    // The webworker is built using eslint to ensure the imports are available in the webworker.
-    // see: jlpm build:worker (called by jlpm build). related: https://github.com/jupyterlite/pyodide-kernel/issues/222 https://github.com/jupyterlab/jupyterlab/issues/10197
-    this._pyodideWorker = new Worker(
-      /* webpackChunkName: "webworker" */ new URL('./webworker.js', import.meta.url),
-      {
-        type: 'module'
-      }
-    );
+    // The kernel runs in a webworker which is built using eslint to make the webworker self-contained regarding imports.
+    // see the jlpm script "build:worker" related: https://github.com/jupyterlite/pyodide-kernel/issues/222 https://github.com/jupyterlab/jupyterlab/issues/10197
+    this._pyodideWorker = new Worker(new URL('./webworker.js', import.meta.url), {
+      type: 'module',
+      name: 'webworker'
+    });
     this._pyodideWorker.onmessage = this.handlePyodideWorkerMessage.bind(this);
     this._pyodideWorker.postMessage({ mode: 'initialize', options });
   }
