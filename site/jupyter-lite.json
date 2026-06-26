@@ -4,10 +4,10 @@
     "appName": "JupyterLite",
     "litePluginSettings": {
       "@jupyterlite/async-kernel:kernel": {
-        "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide.mjs",
+        "pyodideUrl": "https://cdn.jsdelivr.net/pyodide/v314.0.1/full/pyodide.mjs",
         "loadPyodideOptions": {
           "packages": [],
-          "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v314.0.0/full/pyodide-lock.json?from-lite-config=1"
+          "lockFileURL": "https://cdn.jsdelivr.net/pyodide/v314.0.1/full/pyodide-lock.json?from-lite-config=1"
         },
         "name": "async",
         "display_name": "Python (async)",
